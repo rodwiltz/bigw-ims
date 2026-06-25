@@ -16,9 +16,22 @@ function showScreen(id) {
 }
 
 function goHome() {
-  stopQrScanner();
+  try {
+    stopQrScanner();
+  } catch (e) {
+    console.log("Scanner already stopped.");
+  }
+
   scannedItems.clear();
   saving = false;
+
+  document.getElementById("agreementNumber").value = "";
+  document.getElementById("customerName").value = "";
+  document.getElementById("staffPin").value = "";
+  document.getElementById("scanCount").innerText = "0";
+  document.getElementById("scanList").innerHTML = "";
+  document.getElementById("status").innerText = "Ready to scan";
+
   showScreen("home");
 }
 
