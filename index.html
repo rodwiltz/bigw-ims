@@ -1,1 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Big W IMS</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+  <main class="app">
+    <section id="home" class="card">
+      <h1>BIG W</h1>
+      <p class="tagline">Every Event Deserves a Big W</p>
 
+      <button onclick="showCustomerReturn()">Customer Return</button>
+      <button class="secondary" onclick="showStaffLogin()">Staff Login</button>
+    </section>
+
+    <section id="customerReturn" class="card hidden">
+      <h2>Inventory Return</h2>
+      <p>Enter your agreement number, then scan each item you are returning.</p>
+
+      <input id="agreementNumber" placeholder="Agreement / Order Number" />
+      <input id="customerName" placeholder="Customer Name Optional" />
+
+      <button onclick="startCustomerReturn()">Start Return</button>
+      <button class="secondary" onclick="goHome()">Back</button>
+    </section>
+
+    <section id="scannerScreen" class="card hidden">
+      <h2>Scan Returns</h2>
+      <p id="agreementDisplay"></p>
+
+      <h3><span id="scanCount">0</span> Items Returned</h3>
+
+      <div id="reader"></div>
+
+      <p id="status">Ready to scan</p>
+      <div id="scanList"></div>
+
+      <button class="secondary" onclick="finishReturn()">Done</button>
+    </section>
+
+    <section id="doneScreen" class="card hidden">
+      <h2>Thank You</h2>
+      <p>Your return has been recorded.</p>
+      <h3><span id="finalCount">0</span> Items</h3>
+      <button onclick="goHome()">Return Home</button>
+    </section>
+
+    <section id="staffLogin" class="card hidden">
+      <h2>Staff Login</h2>
+      <input id="staffPin" type="password" placeholder="Staff PIN" />
+      <button onclick="staffLogin()">Login</button>
+      <button class="secondary" onclick="goHome()">Back</button>
+    </section>
+
+    <section id="staffHome" class="card hidden">
+      <h2>Staff Portal</h2>
+      <p>Staff checkout will be added next.</p>
+      <button class="secondary" onclick="goHome()">Logout</button>
+    </section>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/scanner.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
