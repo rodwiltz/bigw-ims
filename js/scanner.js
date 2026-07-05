@@ -1,9 +1,9 @@
 let scanner = null;
 
-function startQrScanner(onSuccess, onError) {
+function startScannerEngine(onSuccess, onError) {
   scanner = new Html5Qrcode("reader");
 
-  Html5Qrcode.getCameras()
+  return Html5Qrcode.getCameras()
     .then(function(cameras) {
       if (!cameras || cameras.length === 0) {
         throw new Error("No camera found");
@@ -22,8 +22,14 @@ function startQrScanner(onSuccess, onError) {
     });
 }
 
-function stopQrScanner() {
+function stopScannerEngine() {
   if (scanner) {
-    scanner.stop().catch(function() {});
+    return scanner.stop()
+      .catch(function() {})
+      .finally(function() {
+        scanner = null;
+      });
   }
+
+  return Promise.resolve();
 }
