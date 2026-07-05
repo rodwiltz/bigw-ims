@@ -33,3 +33,4 @@ function stopScannerEngine() {
 
   return Promise.resolve();
 }
+
