@@ -1,63 +1,102 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Project Victory Recovery Scanner</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <main class="app-shell">
-    <section class="screen screen--active" id="startScreen">
-      <div class="card card--brand">
+  <main class="recovery-app">
+    <section id="startScreen" class="screen screen--active" aria-labelledby="startTitle">
+      <div class="screen-card">
         <p class="eyebrow">Project Victory</p>
-        <h1>Big W Events</h1>
-        <p class="lead">Fast recovery scanner for pickup and return testing.</p>
-        <label for="agreementInput">Agreement / Order Number</label>
-        <input id="agreementInput" type="text" autocomplete="off" placeholder="Example: BW-2026-0019">
-        <label for="customerInput">Customer Name <span>optional</span></label>
-        <input id="customerInput" type="text" autocomplete="off" placeholder="Example: Dayana Price">
-        <button class="primary-action" id="continueButton" type="button">Continue</button>
-        <p class="helper-text" id="startMessage" role="status"></p>
+        <h1 id="startTitle">Big W Events</h1>
+        <p class="screen-copy">Fast recovery scanner for pickup and return testing.</p>
+
+        <div class="form-grid">
+          <label class="field">
+            <span>Agreement / Order Number</span>
+            <input id="agreementInput" type="text" placeholder="Example: BW-2026-0019" autocomplete="off">
+          </label>
+
+          <label class="field">
+            <span>Customer Name <em>optional</em></span>
+            <input id="customerInput" type="text" placeholder="Example: Dayana Price" autocomplete="off">
+          </label>
+        </div>
+
+        <p id="startMessage" class="inline-message" aria-live="polite"></p>
+
+        <div class="button-row">
+          <button id="continueButton" type="button" class="primary-button">Continue</button>
+        </div>
       </div>
     </section>
 
-    <section class="screen" id="cameraIntroScreen">
-      <div class="card">
+    <section id="cameraIntroScreen" class="screen" aria-labelledby="cameraIntroTitle">
+      <div class="screen-card">
         <p class="eyebrow">Camera Access</p>
-        <h1>Enable the camera.</h1>
-        <p class="lead">On the next tap, Project Victory will open the scanner and start the camera directly.</p>
-        <div class="summary-card">
-          <strong id="introAgreement">Agreement</strong>
-          <span id="introCustomer">Customer</span>
+        <h2 id="cameraIntroTitle">Enable the camera.</h2>
+        <p class="screen-copy">On the next tap, Project Victory will open the scanner and start the camera directly.</p>
+
+        <dl class="summary-list">
+          <div>
+            <dt>Agreement</dt>
+            <dd id="introAgreement"></dd>
+          </div>
+          <div>
+            <dt>Customer</dt>
+            <dd id="introCustomer"></dd>
+          </div>
+        </dl>
+
+        <div class="button-row">
+          <button id="enableCameraButton" type="button" class="primary-button">Enable Camera</button>
+          <button id="backToStartButton" type="button" class="secondary-button">Back</button>
         </div>
-        <button class="primary-action" id="enableCameraButton" type="button">Enable Camera</button>
-        <button class="secondary-action" id="backToStartButton" type="button">Back</button>
       </div>
     </section>
 
-    <section class="screen" id="scannerScreen">
-      <div class="card">
+    <section id="scannerScreen" class="screen" aria-labelledby="scannerTitle">
+      <div class="screen-card">
         <p class="eyebrow">Scanner</p>
-        <h1>Scan items.</h1>
-        <div class="summary-card">
-          <strong id="scannerAgreement">Agreement</strong>
-          <span id="scannerCustomer">Customer</span>
-          <span><b id="scanCount">0</b> item(s) scanned</span>
-        </div>
-        <div id="reader" class="reader"></div>
-        <p class="scanner-status" id="scannerStatus" role="status">Camera is starting…</p>
-        <section class="scan-list-panel">
-          <h2>Scanned Items</h2>
+        <h2 id="scannerTitle">Scan items.</h2>
+
+        <dl class="summary-list summary-list--scanner">
+          <div>
+            <dt>Agreement</dt>
+            <dd id="scannerAgreement"></dd>
+          </div>
+          <div>
+            <dt>Customer</dt>
+            <dd id="scannerCustomer"></dd>
+          </div>
+          <div>
+            <dt>Items scanned</dt>
+            <dd><span id="scanCount">0</span></dd>
+          </div>
+        </dl>
+
+        <div id="reader" class="scanner-reader" aria-label="QR scanner camera workspace"></div>
+
+        <p id="scannerStatus" class="scanner-status" aria-live="polite">Camera is starting…</p>
+
+        <section class="scan-results">
+          <h3>Scanned Items</h3>
           <ul id="scanList"></ul>
         </section>
-        <button class="primary-action" id="doneButton" type="button">Done</button>
-        <button class="secondary-action" id="restartButton" type="button">Restart</button>
+
+        <div class="button-row">
+          <button id="doneButton" type="button" class="secondary-button">Done</button>
+          <button id="restartButton" type="button" class="secondary-button">Restart</button>
+        </div>
       </div>
     </section>
   </main>
-  <script src="scanner.js"></script>
-  <script src="app.js"></script>
+
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="js/scanner.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
