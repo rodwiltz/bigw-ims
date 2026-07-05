@@ -10,3 +10,4 @@ function saveReturnScan(data) {
     body: JSON.stringify(data)
   });
 }
+
