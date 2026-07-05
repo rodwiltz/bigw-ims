@@ -1,28 +1,63 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Big W Events | Project Victory</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Project Victory Recovery Scanner</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body>
-  <a class="skip-link" href="#app">Skip to main content</a>
+  <main class="app-shell">
+    <section class="screen screen--active" id="startScreen">
+      <div class="card card--brand">
+        <p class="eyebrow">Project Victory</p>
+        <h1>Big W Events</h1>
+        <p class="lead">Fast recovery scanner for pickup and return testing.</p>
+        <label for="agreementInput">Agreement / Order Number</label>
+        <input id="agreementInput" type="text" autocomplete="off" placeholder="Example: BW-2026-0019">
+        <label for="customerInput">Customer Name <span>optional</span></label>
+        <input id="customerInput" type="text" autocomplete="off" placeholder="Example: Dayana Price">
+        <button class="primary-action" id="continueButton" type="button">Continue</button>
+        <p class="helper-text" id="startMessage" role="status"></p>
+      </div>
+    </section>
 
-  <main id="app" class="app-shell" aria-live="polite">
-    <noscript>
-      <section class="screen screen--active">
-        <div class="completion-panel">
-          <div class="completion-panel__icon" aria-hidden="true">!</div>
-          <h1>JavaScript is required.</h1>
-          <p>Please enable JavaScript to use the Big W Events self-service experience.</p>
+    <section class="screen" id="cameraIntroScreen">
+      <div class="card">
+        <p class="eyebrow">Camera Access</p>
+        <h1>Enable the camera.</h1>
+        <p class="lead">On the next tap, Project Victory will open the scanner and start the camera directly.</p>
+        <div class="summary-card">
+          <strong id="introAgreement">Agreement</strong>
+          <span id="introCustomer">Customer</span>
         </div>
-      </section>
-    </noscript>
-  </main>
+        <button class="primary-action" id="enableCameraButton" type="button">Enable Camera</button>
+        <button class="secondary-action" id="backToStartButton" type="button">Back</button>
+      </div>
+    </section>
 
-  <script src="js/api.js"></script>
-  <script src="js/scanner.js"></script>
-  <script src="js/app.js"></script>
+    <section class="screen" id="scannerScreen">
+      <div class="card">
+        <p class="eyebrow">Scanner</p>
+        <h1>Scan items.</h1>
+        <div class="summary-card">
+          <strong id="scannerAgreement">Agreement</strong>
+          <span id="scannerCustomer">Customer</span>
+          <span><b id="scanCount">0</b> item(s) scanned</span>
+        </div>
+        <div id="reader" class="reader"></div>
+        <p class="scanner-status" id="scannerStatus" role="status">Camera is starting…</p>
+        <section class="scan-list-panel">
+          <h2>Scanned Items</h2>
+          <ul id="scanList"></ul>
+        </section>
+        <button class="primary-action" id="doneButton" type="button">Done</button>
+        <button class="secondary-action" id="restartButton" type="button">Restart</button>
+      </div>
+    </section>
+  </main>
+  <script src="scanner.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
