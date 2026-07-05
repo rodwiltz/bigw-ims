@@ -27,9 +27,11 @@
   const scannerStatus = document.getElementById("scannerStatus");
 
   document.getElementById("continueButton").addEventListener("click", handleContinue);
+
   document.getElementById("backToStartButton").addEventListener("click", function () {
     showScreen(startScreen);
   });
+
   document.getElementById("enableCameraButton").addEventListener("click", handleEnableCameraTap);
   document.getElementById("doneButton").addEventListener("click", handleDone);
   document.getElementById("restartButton").addEventListener("click", handleRestart);
@@ -73,7 +75,10 @@
 
   function handleScanSuccess(decodedText) {
     const value = String(decodedText || "").trim();
-    if (!value) return;
+
+    if (!value) {
+      return;
+    }
 
     if (state.scannedItems.has(value)) {
       setScannerStatus("Already scanned: " + value);
@@ -107,10 +112,8 @@
   function handleRestart() {
     stopScannerEngine().finally(function () {
       state.scannedItems.clear();
-      state.scannerStarted = false;
       updateScanDisplay();
       setScannerStatus("Camera is starting…");
-      state.scannerStarted = true;
       startScannerEngine(handleScanSuccess, handleScanError);
     });
   }
@@ -152,7 +155,9 @@
     fetch(BACKEND_SCAN_URL, {
       method: "POST",
       mode: "no-cors",
-      headers: { "Content-Type": "text/plain" },
+      headers: {
+        "Content-Type": "text/plain"
+      },
       body: JSON.stringify({
         agreement: state.agreement,
         customer: state.customer,
