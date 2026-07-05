@@ -15,92 +15,152 @@
     lastErrorLayer: "none"
   };
 
-  const startScreen = document.getElementById("startScreen");
-  const cameraIntroScreen = document.getElementById("cameraIntroScreen");
-  const scannerScreen = document.getElementById("scannerScreen");
-  const agreementInput = document.getElementById("agreementInput");
-  const customerInput = document.getElementById("customerInput");
-  const flowTypeInput = document.getElementById("flowTypeInput");
-  const startMessage = document.getElementById("startMessage");
-  const introFlowLabel = document.getElementById("introFlowLabel");
-  const introAgreement = document.getElementById("introAgreement");
-  const introCustomer = document.getElementById("introCustomer");
-  const introContext = document.getElementById("introContext");
-  const introMessage = document.getElementById("introMessage");
-  const scannerFlowLabel = document.getElementById("scannerFlowLabel");
-  const scannerAgreement = document.getElementById("scannerAgreement");
-  const scannerCustomer = document.getElementById("scannerCustomer");
-  const acceptedCount = document.getElementById("acceptedCount");
-  const acceptedScanList = document.getElementById("acceptedScanList");
-  const eventList = document.getElementById("eventList");
-  const scannerStatus = document.getElementById("scannerStatus");
-  const diagnosticsOutput = document.getElementById("diagnosticsOutput");
+  const els = {};
 
-  document.getElementById("continueButton").addEventListener("click", handleContinue);
-  document.getElementById("backToStartButton").addEventListener("click", function () { showScreen(startScreen); });
-  document.getElementById("enableCameraButton").addEventListener("click", handleEnableCameraTap);
-  document.getElementById("resumeButton").addEventListener("click", handleResumeProgress);
-  document.getElementById("doneButton").addEventListener("click", handleDone);
-  document.getElementById("saveButton").addEventListener("click", handleSaveProgress);
-  document.getElementById("restartButton").addEventListener("click", handleRestart);
-
-  window.addEventListener("beforeunload", function (event) {
-    if (state.scannerStarted && state.acceptedItems.size > 0) {
-      event.preventDefault();
-      event.returnValue = "";
-    }
+  window.addEventListener("error", function(event) {
+    state.lastErrorLayer = "runtime error";
+    showEntryError("Project Victory could not start correctly: " + (event.message || "Runtime error."));
+    updateDiagnostics();
   });
 
+  window.addEventListener("unhandledrejection", function(event) {
+    const reason = event.reason && (event.reason.message || event.reason.name || String(event.reason));
+    state.lastErrorLayer = "unhandled promise rejection";
+    showEntryError("Project Victory request failed: " + (reason || "Unknown request error."));
+    updateDiagnostics();
+  });
+
+  document.addEventListener("DOMContentLoaded", initializeApp);
+
+  function initializeApp() {
+    cacheElements();
+
+    const missing = requiredElementNames().filter(function(name) { return !els[name]; });
+    if (missing.length > 0) {
+      state.lastErrorLayer = "frontend initialization";
+      showEntryError("Project Victory did not load correctly. Missing screen element(s): " + missing.join(", "));
+      return;
+    }
+
+    els.continueButton.addEventListener("click", handleContinue);
+    els.backToStartButton.addEventListener("click", function () { showScreen(els.startScreen); });
+    els.enableCameraButton.addEventListener("click", handleEnableCameraTap);
+    els.resumeButton.addEventListener("click", handleResumeProgress);
+    els.doneButton.addEventListener("click", handleDone);
+    els.saveButton.addEventListener("click", handleSaveProgress);
+    els.restartButton.addEventListener("click", handleRestart);
+
+    window.addEventListener("beforeunload", function (event) {
+      if (state.scannerStarted && state.acceptedItems.size > 0) {
+        event.preventDefault();
+        event.returnValue = "";
+      }
+    });
+
+    setEntryMessage("Ready. Enter an agreement number to continue.");
+    updateDiagnostics();
+  }
+
+  function cacheElements() {
+    [
+      "startScreen", "cameraIntroScreen", "scannerScreen", "agreementInput", "customerInput", "flowTypeInput",
+      "startMessage", "introFlowLabel", "introAgreement", "introCustomer", "introContext", "introMessage",
+      "scannerFlowLabel", "scannerAgreement", "scannerCustomer", "acceptedCount", "acceptedScanList",
+      "eventList", "scannerStatus", "diagnosticsOutput", "continueButton", "backToStartButton",
+      "enableCameraButton", "resumeButton", "doneButton", "saveButton", "restartButton"
+    ].forEach(function(id) {
+      els[id] = document.getElementById(id);
+    });
+  }
+
+  function requiredElementNames() {
+    return [
+      "startScreen", "cameraIntroScreen", "scannerScreen", "agreementInput", "customerInput", "flowTypeInput",
+      "startMessage", "introFlowLabel", "introAgreement", "introCustomer", "introContext", "introMessage",
+      "scannerFlowLabel", "scannerAgreement", "scannerCustomer", "acceptedCount", "acceptedScanList",
+      "eventList", "scannerStatus", "diagnosticsOutput", "continueButton", "backToStartButton",
+      "enableCameraButton", "resumeButton", "doneButton", "saveButton", "restartButton"
+    ];
+  }
+
   function handleContinue() {
-    const agreement = agreementInput.value.trim();
-    const customer = customerInput.value.trim();
-    const flowType = flowTypeInput.value;
+    setEntryMessage("Continue pressed. Reading agreement…");
+    state.lastErrorLayer = "none";
+    state.lastBackendAction = "none";
+    state.lastBackendResult = "none";
+    updateDiagnostics();
+
+    const agreement = String(els.agreementInput.value || "").trim();
+    const customer = String(els.customerInput.value || "").trim();
+    const flowType = String(els.flowTypeInput.value || "pickup").trim() || "pickup";
 
     if (!agreement) {
-      startMessage.textContent = "Enter an agreement or order number to continue.";
-      agreementInput.focus();
+      state.lastErrorLayer = "frontend validation";
+      showEntryError("Enter an agreement or order number to continue.");
+      els.agreementInput.focus();
+      updateDiagnostics();
       return;
     }
 
     state.agreement = agreement;
     state.customer = customer;
     state.flowType = flowType;
+    state.cartId = "";
     state.acceptedItems = new Set();
     state.eventMessages = [];
 
-    startMessage.textContent = "Loading order context…";
+    setEntryMessage("Loading order context for " + agreement + "…");
+    updateDiagnostics();
+
+    if (typeof projectVictoryApiCall !== "function") {
+      state.lastErrorLayer = "frontend api bridge missing";
+      showEntryError("Project Victory API bridge did not load. Confirm js/api.js is published in the GitHub repo.");
+      updateDiagnostics();
+      return;
+    }
+
     callBackend("loadScanContext", { agreement: agreement, flowType: flowType })
       .then(function(response) {
-        if (!response || response.ok !== true) {
+        if (!response || typeof response !== "object") {
+          state.lastErrorLayer = "malformed backend response";
+          showEntryError("Project Victory returned an unexpected order response. Please retry after confirming the Apps Script deployment.");
+          updateDiagnostics();
+          return;
+        }
+
+        if (response.ok !== true) {
           state.lastErrorLayer = "backend returned a failure result";
-          startMessage.textContent = readableMessage(response, "Could not load this order.");
+          showEntryError(readableMessage(response, "Could not load this order. Confirm the agreement number and backend deployment."));
           updateDiagnostics();
           return;
         }
 
         state.cartId = response.cartId || agreement;
         state.customer = customer || response.customer || "";
-        introFlowLabel.textContent = flowType === "pickup" ? "Pickup Scan" : "Return Scan";
-        scannerFlowLabel.textContent = flowType === "pickup" ? "Pickup Scanner" : "Return Scanner";
-        introAgreement.textContent = agreement;
-        introCustomer.textContent = state.customer || "Customer name not entered";
-        introContext.textContent = (response.assignedItems || []).length + " assigned item(s) in this order";
-        scannerAgreement.textContent = agreement;
-        scannerCustomer.textContent = state.customer || "Customer name not entered";
-        introMessage.textContent = response.resumableSession ? "Saved progress is available for this order." : "Order context loaded.";
-        startMessage.textContent = "";
+
+        els.introFlowLabel.textContent = flowType === "pickup" ? "Pickup Scan" : "Return Scan";
+        els.scannerFlowLabel.textContent = flowType === "pickup" ? "Pickup Scanner" : "Return Scanner";
+        els.introAgreement.textContent = agreement;
+        els.introCustomer.textContent = state.customer || "Customer name not entered";
+        els.introContext.textContent = (response.assignedItems || []).length + " assigned item(s) in this order";
+        els.scannerAgreement.textContent = agreement;
+        els.scannerCustomer.textContent = state.customer || "Customer name not entered";
+        els.introMessage.textContent = response.resumableSession ? "Saved progress is available for this order." : "Order context loaded.";
+
+        setEntryMessage("");
         updateScanDisplay();
-        showScreen(cameraIntroScreen);
+        updateDiagnostics();
+        showScreen(els.cameraIntroScreen);
       })
       .catch(function(error) {
         state.lastErrorLayer = "frontend failed to call backend";
-        startMessage.textContent = error.message;
+        showEntryError(error && error.message ? error.message : "Could not call Project Victory backend.");
         updateDiagnostics();
       });
   }
 
   function handleEnableCameraTap() {
-    showScreen(scannerScreen);
+    showScreen(els.scannerScreen);
     setScannerStatus("Camera is starting…");
     state.scannerStarted = true;
 
@@ -128,6 +188,7 @@
     const action = state.flowType === "return" ? "recordReturnScan" : "recordPickupScan";
     state.lastBackendAction = action;
     setScannerStatus("Checking item with Project Victory…");
+    updateDiagnostics();
 
     callBackend(action, {
       agreement: state.agreement,
@@ -139,7 +200,7 @@
     }).catch(function(error) {
       state.lastErrorLayer = "frontend failed to call backend";
       state.lastBackendResult = "request_failed";
-      addEvent("Backend request failed: " + error.message);
+      addEvent("Backend request failed: " + (error.message || String(error)));
       setScannerStatus("Could not reach Project Victory. Try again.", "error");
       updateDiagnostics();
     });
@@ -215,9 +276,11 @@
     }).then(function(response) {
       addEvent(readableMessage(response, "Scan progress saved."));
       setScannerStatus(readableMessage(response, "Scan progress saved."), response && response.ok ? "success" : "error");
+      updateDiagnostics();
     }).catch(function(error) {
-      addEvent("Save failed: " + error.message);
+      addEvent("Save failed: " + (error.message || String(error)));
       setScannerStatus("Could not save progress. Try again.", "error");
+      updateDiagnostics();
     });
   }
 
@@ -232,10 +295,11 @@
         state.acceptedItems = new Set(savedIds);
         updateScanDisplay();
       }
-      introMessage.textContent = readableMessage(response, "Resume check complete.");
+      els.introMessage.textContent = readableMessage(response, "Resume check complete.");
       updateDiagnostics();
     }).catch(function(error) {
-      introMessage.textContent = "Could not resume saved progress: " + error.message;
+      els.introMessage.textContent = "Could not resume saved progress: " + (error.message || String(error));
+      updateDiagnostics();
     });
   }
 
@@ -248,7 +312,7 @@
       stopScannerEngine().finally(function () {
         state.scannerStarted = false;
         setScannerStatus("Scanner stopped.");
-        showScreen(cameraIntroScreen);
+        showScreen(els.cameraIntroScreen);
       });
     });
   }
@@ -271,18 +335,18 @@
   }
 
   function updateScanDisplay() {
-    acceptedCount.textContent = String(state.acceptedItems.size);
-    acceptedScanList.innerHTML = "";
+    els.acceptedCount.textContent = String(state.acceptedItems.size);
+    els.acceptedScanList.innerHTML = "";
     Array.from(state.acceptedItems).forEach(function (item) {
       const li = document.createElement("li");
       li.textContent = item;
-      acceptedScanList.appendChild(li);
+      els.acceptedScanList.appendChild(li);
     });
-    eventList.innerHTML = "";
+    els.eventList.innerHTML = "";
     state.eventMessages.slice(-8).forEach(function(message) {
       const li = document.createElement("li");
       li.textContent = message;
-      eventList.appendChild(li);
+      els.eventList.appendChild(li);
     });
   }
 
@@ -292,14 +356,15 @@
   }
 
   function setScannerStatus(message, tone) {
-    scannerStatus.textContent = message;
-    scannerStatus.classList.toggle("scanner-status--error", tone === "error");
-    scannerStatus.classList.toggle("scanner-status--warning", tone === "warning");
-    scannerStatus.classList.toggle("scanner-status--success", tone === "success");
+    if (!els.scannerStatus) return;
+    els.scannerStatus.textContent = message;
+    els.scannerStatus.classList.toggle("scanner-status--error", tone === "error");
+    els.scannerStatus.classList.toggle("scanner-status--warning", tone === "warning");
+    els.scannerStatus.classList.toggle("scanner-status--success", tone === "success");
   }
 
   function showScreen(screen) {
-    [startScreen, cameraIntroScreen, scannerScreen].forEach(function (item) {
+    [els.startScreen, els.cameraIntroScreen, els.scannerScreen].forEach(function (item) {
       item.classList.toggle("screen--active", item === screen);
     });
   }
@@ -308,8 +373,23 @@
     return response && response.message ? response.message : fallback;
   }
 
+  function setEntryMessage(message) {
+    if (els.startMessage) {
+      els.startMessage.textContent = message;
+      els.startMessage.classList.remove("helper-text--error");
+    }
+  }
+
+  function showEntryError(message) {
+    if (els.startMessage) {
+      els.startMessage.textContent = message;
+      els.startMessage.classList.add("helper-text--error");
+    }
+  }
+
   function updateDiagnostics() {
-    diagnosticsOutput.textContent = JSON.stringify({
+    if (!els.diagnosticsOutput) return;
+    els.diagnosticsOutput.textContent = JSON.stringify({
       agreement: state.agreement,
       flowType: state.flowType,
       cartId: state.cartId,
@@ -317,7 +397,7 @@
       lastBackendAction: state.lastBackendAction,
       lastBackendResult: state.lastBackendResult,
       lastErrorLayer: state.lastErrorLayer,
-      acceptedCount: state.acceptedItems.size
+      acceptedCount: state.acceptedItems ? state.acceptedItems.size : 0
     }, null, 2);
   }
 })();
