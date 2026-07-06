@@ -3,14 +3,9 @@ const LAUNCH1_API_URL = "https://script.google.com/macros/s/AKfycbwmKZPRkM--y7nu
 const Launch1Api = (function () {
   "use strict";
 
-  function readProof(token) {
+  function loadOrderSummaryByToken(token) {
     return new Promise(function (resolve, reject) {
-      if (!LAUNCH1_API_URL || LAUNCH1_API_URL.indexOf("https://script.google.com/macros/s/AKfycbwmKZPRkM--y7nuxHfZ_7sHO-9kHLSupOjfLBnHIRTFdjUms5XE06ffJsNf_lrsp5OjUA/exec") !== -1) {
-        reject(new Error("Launch 1 backend URL is not configured."));
-        return;
-      }
-
-      const callbackName = "lr1aDiagCallback_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+      const callbackName = "lr1aCallback_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
       const script = document.createElement("script");
 
       window[callbackName] = function (response) {
@@ -29,8 +24,8 @@ const Launch1Api = (function () {
       };
 
       const url = new URL(LAUNCH1_API_URL);
-      url.searchParams.set("action", "readProof");
-      url.searchParams.set("token", token);
+      url.searchParams.set("action", "loadOrderSummaryByToken");
+      url.searchParams.set("payload", JSON.stringify({ token: token }));
       url.searchParams.set("callback", callbackName);
 
       script.src = url.toString();
@@ -39,6 +34,6 @@ const Launch1Api = (function () {
   }
 
   return {
-    readProof: readProof
+    loadOrderSummaryByToken: loadOrderSummaryByToken
   };
 })();
