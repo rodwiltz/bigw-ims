@@ -6,6 +6,13 @@
   const pickupHandoffScreen = document.getElementById("pickupHandoffScreen");
   const errorScreen = document.getElementById("errorScreen");
 
+  const allScreens = [
+    loadingScreen,
+    summaryScreen,
+    pickupHandoffScreen,
+    errorScreen
+  ];
+
   let currentOrder = null;
 
   document.addEventListener("DOMContentLoaded", function () {
@@ -37,7 +44,6 @@
     if (action === "start_pickup") {
       renderPickupHandoff(currentOrder || {});
       showScreen(pickupHandoffScreen);
-      return;
     }
   });
 
@@ -54,11 +60,14 @@
     document.getElementById("itemSummary").textContent = order.itemSummary || "—";
 
     const actionLabel = order.primaryActionLabel || "Start Pickup";
+    const actionButton = document.getElementById("primaryActionButton");
+
     document.getElementById("primaryActionLabel").textContent = actionLabel;
     document.getElementById("primaryActionMessage").textContent =
       order.primaryActionMessage || "Start your pickup when you are ready.";
-    document.getElementById("primaryActionButton").textContent = actionLabel;
-    document.getElementById("primaryActionButton").dataset.action = order.primaryAction || "start_pickup";
+
+    actionButton.textContent = actionLabel;
+    actionButton.dataset.action = order.primaryAction || "start_pickup";
   }
 
   function renderPickupHandoff(order) {
@@ -74,8 +83,13 @@
 
   function formatDate(value) {
     if (!value) return "—";
+
     const date = new Date(value);
-    if (isNaN(date.getTime())) return String(value);
+
+    if (isNaN(date.getTime())) {
+      return String(value);
+    }
+
     return date.toLocaleString([], {
       month: "short",
       day: "numeric",
@@ -89,9 +103,19 @@
     showScreen(errorScreen);
   }
 
-  function showScreen(screen) {
-    [loadingScreen, summaryScreen, pickupHandoffScreen, errorScreen].forEach(function (candidate) {
-      candidate.classList.toggle("screen--active", candidate === screen);
+  function showScreen(targetScreen) {
+    allScreens.forEach(function (screen) {
+      if (!screen) return;
+
+      screen.classList.remove("screen--active");
+      screen.style.display = "none";
+      screen.setAttribute("aria-hidden", "true");
     });
+
+    if (!targetScreen) return;
+
+    targetScreen.classList.add("screen--active");
+    targetScreen.style.display = "block";
+    targetScreen.setAttribute("aria-hidden", "false");
   }
 })();
