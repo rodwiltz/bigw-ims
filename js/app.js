@@ -34,6 +34,10 @@
     document.getElementById("returnDueAt").textContent = formatDate(order.returnDueAt);
     document.getElementById("orderStatus").textContent = order.orderStatus || "—";
     document.getElementById("itemSummary").textContent = order.itemSummary || "—";
+
+    document.getElementById("primaryActionLabel").textContent = order.primaryActionLabel || "Start Pickup";
+    document.getElementById("primaryActionMessage").textContent = order.primaryActionMessage || "Start your pickup when you are ready.";
+    document.getElementById("primaryActionButton").textContent = order.primaryActionLabel || "Start Pickup";
   }
 
   function getTokenFromUrl() {
