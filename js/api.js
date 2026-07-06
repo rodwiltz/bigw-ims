@@ -5,7 +5,7 @@ const Launch1Api = (function () {
 
   function readProof(token) {
     return new Promise(function (resolve, reject) {
-      if (!LAUNCH1_API_URL || LAUNCH1_API_URL.indexOf("PASTE_LAUNCH_1_APPS_SCRIPT_WEB_APP_URL_HERE") !== -1) {
+      if (!LAUNCH1_API_URL || LAUNCH1_API_URL.indexOf("https://script.google.com/macros/s/AKfycbwmKZPRkM--y7nuxHfZ_7sHO-9kHLSupOjfLBnHIRTFdjUms5XE06ffJsNf_lrsp5OjUA/exec") !== -1) {
         reject(new Error("Launch 1 backend URL is not configured."));
         return;
       }
