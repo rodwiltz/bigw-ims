@@ -1,4 +1,4 @@
-const LAUNCH1_API_URL = "PASTE_LAUNCH_1_APPS_SCRIPT_WEB_APP_URL_HERE";
+const LAUNCH1_API_URL = "https://script.google.com/macros/s/AKfycbwmKZPRkM--y7nuxHfZ_7sHO-9kHLSupOjfLBnHIRTFdjUms5XE06ffJsNf_lrsp5OjUA/exec";
 
 const Launch1Api = (function () {
   "use strict";
