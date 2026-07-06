@@ -14,7 +14,9 @@ const Launch1Api = (function () {
       };
 
       function cleanup() {
-        if (script.parentNode) script.parentNode.removeChild(script);
+        if (script.parentNode) {
+          script.parentNode.removeChild(script);
+        }
         delete window[callbackName];
       }
 
