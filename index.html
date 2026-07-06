@@ -3,57 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Big W Events | Order Summary</title>
-  <link rel="stylesheet" href="css/style.css">
+  <title>LR1A Spreadsheet Read Proof</title>
 </head>
 <body>
-  <main class="app-shell">
-    <section class="screen screen--active" id="loadingScreen">
-      <div class="card">
-        <p class="eyebrow">Big W Events</p>
-        <h1>Loading your order…</h1>
-        <p class="lead">We’re checking your secure order link.</p>
-        <p class="status-message" id="loadingMessage" role="status">Please wait.</p>
-      </div>
-    </section>
+  <main>
+    <h1>Spreadsheet Read Proof</h1>
 
-    <section class="screen" id="summaryScreen">
-      <div class="card">
-        <p class="eyebrow">Order Summary</p>
-        <h1>You’re all set.</h1>
-        <p class="lead">Please review your rental order details.</p>
-
-        <section class="summary-panel" aria-label="Order summary">
-          <div>
-            <span class="summary-label">Agreement</span>
-            <strong id="agreementNumber">—</strong>
-          </div>
-          <div>
-            <span class="summary-label">Customer</span>
-            <strong id="customerName">—</strong>
-          </div>
-          <div>
-            <span class="summary-label">Rental Window</span>
-            <strong id="rentalWindow">—</strong>
-          </div>
-          <div>
-            <span class="summary-label">Items</span>
-            <strong id="itemSummary">—</strong>
-          </div>
-        </section>
-
-        <p class="status-message status-message--subtle">Pickup and return actions will be enabled in a later Launch Reset slice.</p>
-      </div>
-    </section>
-
-    <section class="screen" id="errorScreen">
-      <div class="card">
-        <p class="eyebrow">Order Link</p>
-        <h1>We couldn’t open this order.</h1>
-        <p class="lead" id="errorMessage">This order link may be invalid, expired, or temporarily unavailable.</p>
-        <button class="secondary-action" id="retryButton" type="button">Try Again</button>
-      </div>
-    </section>
+    <p><strong>Status:</strong> <span id="status">Loading…</span></p>
+    <p><strong>Token:</strong> <span id="token">LR1A-TEST-001</span></p>
+    <p><strong>Agreement:</strong> <span id="agreement">—</span></p>
+    <p><strong>Customer:</strong> <span id="customer">—</span></p>
+    <p><strong>Item Summary:</strong> <span id="itemSummary">—</span></p>
   </main>
 
   <script src="js/api.js"></script>
