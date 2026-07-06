@@ -8,20 +8,33 @@ const Launch1Api = (function () {
       return Promise.reject(new Error("Launch 1 backend URL is not configured in js/api.js."));
     }
 
-    return fetch(LAUNCH1_API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ action: action, payload: payload || {} })
-    })
-      .then(function (response) { return response.text(); })
-      .then(function (text) {
-        if (!text) throw new Error("Backend returned an empty response.");
-        try {
-          return JSON.parse(text);
-        } catch (error) {
-          throw new Error("Backend returned malformed JSON.");
-        }
-      });
+    return new Promise(function (resolve, reject) {
+      const callbackName = "launch1Callback_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+      const script = document.createElement("script");
+
+      window[callbackName] = function (response) {
+        cleanup();
+        resolve(response);
+      };
+
+      function cleanup() {
+        if (script.parentNode) script.parentNode.removeChild(script);
+        delete window[callbackName];
+      }
+
+      script.onerror = function () {
+        cleanup();
+        reject(new Error("Backend request failed."));
+      };
+
+      const url = new URL(LAUNCH1_API_URL);
+      url.searchParams.set("action", action);
+      url.searchParams.set("payload", JSON.stringify(payload || {}));
+      url.searchParams.set("callback", callbackName);
+
+      script.src = url.toString();
+      document.body.appendChild(script);
+    });
   }
 
   return {
