@@ -4,16 +4,13 @@
   const loadingScreen = document.getElementById("loadingScreen");
   const summaryScreen = document.getElementById("summaryScreen");
   const pickupHandoffScreen = document.getElementById("pickupHandoffScreen");
+  const scannerScreen = document.getElementById("scannerScreen");
   const errorScreen = document.getElementById("errorScreen");
 
-  const allScreens = [
-    loadingScreen,
-    summaryScreen,
-    pickupHandoffScreen,
-    errorScreen
-  ];
+  const allScreens = [loadingScreen, summaryScreen, pickupHandoffScreen, scannerScreen, errorScreen];
 
   let currentOrder = null;
+  let scannerStarted = false;
 
   document.addEventListener("DOMContentLoaded", function () {
     const token = getTokenFromUrl();
@@ -48,8 +45,59 @@
   });
 
   document.getElementById("openCameraButton").addEventListener("click", function () {
-    this.textContent = "Camera opens in the next slice";
+    renderScannerContext(currentOrder || {});
+    showScreen(scannerScreen);
+    startCameraFromUserTap();
   });
+
+  window.addEventListener("beforeunload", function () {
+    if (scannerStarted && typeof stopScannerEngine === "function") {
+      stopScannerEngine();
+    }
+  });
+
+  function startCameraFromUserTap() {
+    setScannerStatus("Preparing camera…");
+
+    if (typeof Html5Qrcode === "undefined") {
+      setScannerStatus("Scanner library did not load. Please refresh and try again.", "error");
+      return;
+    }
+
+    if (typeof startScannerEngine !== "function") {
+      setScannerStatus("Scanner support is not available. Please refresh and try again.", "error");
+      return;
+    }
+
+    scannerStarted = true;
+
+    startScannerEngine(handleScanSuccess, handleScanError);
+
+    window.setTimeout(function () {
+      if (scannerStarted) {
+        setScannerStatus("Camera ready. Hold a QR code inside the camera view.", "ready");
+      }
+    }, 1200);
+  }
+
+  function handleScanSuccess(decodedText) {
+    const value = String(decodedText || "").trim();
+
+    if (!value) return;
+
+    document.getElementById("lastScan").textContent = value;
+    setScannerStatus("QR code detected. Scan recording will be added in the next slice.", "success");
+  }
+
+  function handleScanError(error) {
+    const message = error && (error.message || error.name)
+      ? (error.name || "Error") + ": " + error.message
+      : String(error || "");
+
+    if (message) {
+      setScannerStatus("Camera error: " + message, "error");
+    }
+  }
 
   function renderSummary(order) {
     document.getElementById("agreement").textContent = order.agreementNumber || "—";
@@ -76,6 +124,21 @@
     document.getElementById("pickupItems").textContent = order.itemSummary || "—";
   }
 
+  function renderScannerContext(order) {
+    document.getElementById("scannerAgreement").textContent = order.agreementNumber || "—";
+    document.getElementById("scannerCustomer").textContent = order.customerName || "—";
+    document.getElementById("scannerItems").textContent = order.itemSummary || "—";
+    document.getElementById("lastScan").textContent = "No item scanned yet.";
+  }
+
+  function setScannerStatus(message, tone) {
+    const status = document.getElementById("scannerStatus");
+    status.textContent = message;
+    status.classList.toggle("scanner-status--ready", tone === "ready");
+    status.classList.toggle("scanner-status--success", tone === "success");
+    status.classList.toggle("scanner-status--error", tone === "error");
+  }
+
   function getTokenFromUrl() {
     const params = new URLSearchParams(window.location.search);
     return (params.get("token") || params.get("order") || params.get("t") || "").trim();
@@ -83,19 +146,9 @@
 
   function formatDate(value) {
     if (!value) return "—";
-
     const date = new Date(value);
-
-    if (isNaN(date.getTime())) {
-      return String(value);
-    }
-
-    return date.toLocaleString([], {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit"
-    });
+    if (isNaN(date.getTime())) return String(value);
+    return date.toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
   }
 
   function showError(message) {
@@ -106,7 +159,7 @@
   function showScreen(targetScreen) {
     allScreens.forEach(function (screen) {
       if (!screen) return;
-
+      screen.classList.remove("screen-active");
       screen.classList.remove("screen--active");
       screen.style.display = "none";
       screen.setAttribute("aria-hidden", "true");
@@ -114,7 +167,7 @@
 
     if (!targetScreen) return;
 
-    targetScreen.classList.add("screen--active");
+    targetScreen.classList.add("screen-active");
     targetScreen.style.display = "block";
     targetScreen.setAttribute("aria-hidden", "false");
   }
