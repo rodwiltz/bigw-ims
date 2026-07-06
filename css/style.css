@@ -73,14 +73,14 @@ h1 {
   text-align: center;
 }
 
-.lead,
-.next-note {
+.lead {
   margin: 0;
   color: var(--muted);
   text-align: center;
 }
 
-.summary-panel {
+.summary-panel,
+.action-panel {
   display: grid;
   gap: 14px;
   padding: 18px;
@@ -95,7 +95,8 @@ h1 {
   gap: 3px;
 }
 
-.summary-panel span {
+.summary-panel span,
+.action-panel span {
   color: var(--muted);
   font-size: 12px;
   font-weight: 800;
@@ -103,6 +104,25 @@ h1 {
   text-transform: uppercase;
 }
 
-.summary-panel strong {
+.summary-panel strong,
+.action-panel strong {
   overflow-wrap: anywhere;
+}
+
+.action-panel p {
+  margin: 0;
+  color: var(--muted);
+}
+
+button {
+  min-height: 46px;
+  width: 100%;
+  padding: 12px 16px;
+  color: white;
+  background: linear-gradient(180deg, var(--purple), var(--deep));
+  border: 1px solid rgba(91,63,211,.92);
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
 }
