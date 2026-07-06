@@ -126,3 +126,12 @@ button {
   font-weight: 800;
   cursor: pointer;
 }
+/* Launch Reset: screen visibility control */
+.screen {
+  display: none;
+}
+
+.screen.screen-active,
+.screen.screen--active {
+  display: block;
+}
