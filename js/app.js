@@ -3,7 +3,10 @@
 
   const loadingScreen = document.getElementById("loadingScreen");
   const summaryScreen = document.getElementById("summaryScreen");
+  const pickupHandoffScreen = document.getElementById("pickupHandoffScreen");
   const errorScreen = document.getElementById("errorScreen");
+
+  let currentOrder = null;
 
   document.addEventListener("DOMContentLoaded", function () {
     const token = getTokenFromUrl();
@@ -19,12 +22,27 @@
           throw new Error((response && response.message) || "Order could not be loaded.");
         }
 
-        renderSummary(response.orderSummary || {});
+        currentOrder = response.orderSummary || {};
+        renderSummary(currentOrder);
         showScreen(summaryScreen);
       })
       .catch(function (error) {
         showError(error && error.message ? error.message : "We could not load your order right now.");
       });
+  });
+
+  document.getElementById("primaryActionButton").addEventListener("click", function () {
+    const action = this.dataset.action || "start_pickup";
+
+    if (action === "start_pickup") {
+      renderPickupHandoff(currentOrder || {});
+      showScreen(pickupHandoffScreen);
+      return;
+    }
+  });
+
+  document.getElementById("openCameraButton").addEventListener("click", function () {
+    this.textContent = "Camera opens in the next slice";
   });
 
   function renderSummary(order) {
@@ -35,9 +53,18 @@
     document.getElementById("orderStatus").textContent = order.orderStatus || "—";
     document.getElementById("itemSummary").textContent = order.itemSummary || "—";
 
-    document.getElementById("primaryActionLabel").textContent = order.primaryActionLabel || "Start Pickup";
-    document.getElementById("primaryActionMessage").textContent = order.primaryActionMessage || "Start your pickup when you are ready.";
-    document.getElementById("primaryActionButton").textContent = order.primaryActionLabel || "Start Pickup";
+    const actionLabel = order.primaryActionLabel || "Start Pickup";
+    document.getElementById("primaryActionLabel").textContent = actionLabel;
+    document.getElementById("primaryActionMessage").textContent =
+      order.primaryActionMessage || "Start your pickup when you are ready.";
+    document.getElementById("primaryActionButton").textContent = actionLabel;
+    document.getElementById("primaryActionButton").dataset.action = order.primaryAction || "start_pickup";
+  }
+
+  function renderPickupHandoff(order) {
+    document.getElementById("pickupAgreement").textContent = order.agreementNumber || "—";
+    document.getElementById("pickupCustomer").textContent = order.customerName || "—";
+    document.getElementById("pickupItems").textContent = order.itemSummary || "—";
   }
 
   function getTokenFromUrl() {
@@ -63,7 +90,7 @@
   }
 
   function showScreen(screen) {
-    [loadingScreen, summaryScreen, errorScreen].forEach(function (candidate) {
+    [loadingScreen, summaryScreen, pickupHandoffScreen, errorScreen].forEach(function (candidate) {
       candidate.classList.toggle("screen--active", candidate === screen);
     });
   }
