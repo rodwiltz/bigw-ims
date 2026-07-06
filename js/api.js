@@ -1,10 +1,10 @@
-const LAUNCH1_API_URL = "PASTE_LAUNCH_1_APPS_SCRIPT_WEB_APP_URL_HERE";
+const LAUNCH1_API_URL = "https://script.google.com/macros/s/AKfycbwmKZPRkM--y7nuxHfZ_7sHO-9kHLSupOjfLBnHIRTFdjUms5XE06ffJsNf_lrsp5OjUA/exec";
 
 const Launch1Api = (function () {
   "use strict";
 
   function call(action, payload) {
-    if (!LAUNCH1_API_URL || LAUNCH1_API_URL.indexOf("PASTE_LAUNCH_1_APPS_SCRIPT_WEB_APP_URL_HERE") !== -1) {
+    if (!LAUNCH1_API_URL || LAUNCH1_API_URL.indexOf("https://script.google.com/macros/s/AKfycbwmKZPRkM--y7nuxHfZ_7sHO-9kHLSupOjfLBnHIRTFdjUms5XE06ffJsNf_lrsp5OjUA/exec") !== -1) {
       return Promise.reject(new Error("Launch 1 backend URL is not configured in js/api.js."));
     }
 
