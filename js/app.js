@@ -5,21 +5,25 @@
 
   document.addEventListener("DOMContentLoaded", function () {
     const token = getTokenFromUrl() || TEST_TOKEN;
+
     document.getElementById("token").textContent = token;
 
-    Launch1Api.readProof(token)
+    Launch1Api.loadOrderSummaryByToken(token)
       .then(function (response) {
         if (!response || response.ok !== true) {
           throw new Error((response && response.message) || "Spreadsheet read failed.");
         }
 
+        const summary = response.orderSummary || {};
+
         document.getElementById("status").textContent = "Success";
-        document.getElementById("agreement").textContent = response.agreementNumber || "—";
-        document.getElementById("customer").textContent = response.customerName || "—";
-        document.getElementById("itemSummary").textContent = response.itemSummary || "—";
+        document.getElementById("agreement").textContent = summary.agreementNumber || "—";
+        document.getElementById("customer").textContent = summary.customerName || "—";
+        document.getElementById("itemSummary").textContent = summary.itemSummary || "—";
       })
       .catch(function (error) {
-        document.getElementById("status").textContent = "Failed: " + (error && error.message ? error.message : String(error));
+        document.getElementById("status").textContent =
+          "Failed: " + (error && error.message ? error.message : String(error));
       });
   });
 
