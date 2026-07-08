@@ -1,4 +1,4 @@
-<!doctype html>
+ yuhtgfaq	CCC																	<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -9,19 +9,11 @@
 </head>
 <body>
   <main class="app-shell">
-    <section class="screen screen-active" id="loadingScreen">
-      <div class="card">
-        <p class="eyebrow">Big W Events</p>
-        <h1>Loading your order…</h1>
-        <p class="lead">We’re checking your secure order link.</p>
-      </div>
-    </section>
+    <section class="screen screen-active" id="loadingScreen"><div class="card"><p class="eyebrow">Big W Events</p><h1>Loading your order…</h1><p class="lead">We’re checking your secure order link.</p></div></section>
 
     <section class="screen" id="summaryScreen">
       <div class="card">
-        <p class="eyebrow">Order Confirmation</p>
-        <h1>You’re all set.</h1>
-        <p class="lead">Please review your rental details.</p>
+        <p class="eyebrow">Order Confirmation</p><h1>You’re all set.</h1><p class="lead">Please review your rental details.</p>
         <section class="summary-panel">
           <div><span>Agreement</span><strong id="agreement">—</strong></div>
           <div><span>Customer</span><strong id="customer">—</strong></div>
@@ -31,8 +23,7 @@
           <div><span>Items</span><strong id="itemSummary">—</strong></div>
         </section>
         <section class="action-panel">
-          <span>Next Step</span>
-          <strong id="primaryActionLabel">—</strong>
+          <span>Next Step</span><strong id="primaryActionLabel">—</strong>
           <p id="primaryActionMessage">Project Victory will guide the correct next step for this order.</p>
           <button id="primaryActionButton" type="button">Continue</button>
         </section>
@@ -41,8 +32,7 @@
 
     <section class="screen" id="pickupHandoffScreen">
       <div class="card">
-        <p class="eyebrow">Pickup</p>
-        <h1>Let’s get your rental.</h1>
+        <p class="eyebrow">Pickup</p><h1>Let’s get your rental.</h1>
         <p class="lead">You’ll scan each item as you pick it up so we can confirm everything is correct.</p>
         <section class="summary-panel">
           <div><span>Agreement</span><strong id="pickupAgreement">—</strong></div>
@@ -50,8 +40,7 @@
           <div><span>Items</span><strong id="pickupItems">—</strong></div>
         </section>
         <section class="action-panel">
-          <span>Next Step</span>
-          <strong>Open Camera</strong>
+          <span>Next Step</span><strong>Open Camera</strong>
           <p>The next screen will open your camera so you can scan each item.</p>
           <button id="openCameraButton" type="button">Open Camera</button>
         </section>
@@ -60,9 +49,7 @@
 
     <section class="screen" id="scannerScreen">
       <div class="card">
-        <p class="eyebrow">Pickup Scanner</p>
-        <h1>Scan your items.</h1>
-        <p class="lead">Hold each QR code inside the camera view.</p>
+        <p class="eyebrow">Pickup Scanner</p><h1>Scan your items.</h1><p class="lead">Hold each QR code inside the camera view.</p>
         <section class="summary-panel">
           <div><span>Agreement</span><strong id="scannerAgreement">—</strong></div>
           <div><span>Customer</span><strong id="scannerCustomer">—</strong></div>
@@ -70,22 +57,12 @@
         </section>
         <div id="reader" class="reader"></div>
         <p class="scanner-status" id="scannerStatus" role="status">Preparing camera…</p>
-        <section class="scan-panel">
-          <span>Last Scan</span>
-          <strong id="lastScan">No item scanned yet.</strong>
-        </section>
+        <section class="scan-panel"><span>Last Accepted Scan</span><strong id="lastScan">No item scanned yet.</strong></section>
       </div>
     </section>
 
-    <section class="screen" id="errorScreen">
-      <div class="card">
-        <p class="eyebrow">Order Link</p>
-        <h1>We couldn’t open this order.</h1>
-        <p class="lead" id="errorMessage">This order link may be invalid, expired, or temporarily unavailable.</p>
-      </div>
-    </section>
+    <section class="screen" id="errorScreen"><div class="card"><p class="eyebrow">Order Link</p><h1>We couldn’t open this order.</h1><p class="lead" id="errorMessage">This order link may be invalid, expired, or temporarily unavailable.</p></div></section>
   </main>
-
   <script src="js/api.js"></script>
   <script src="js/scanner.js"></script>
   <script src="js/app.js"></script>
