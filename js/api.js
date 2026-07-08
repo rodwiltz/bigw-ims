@@ -3,9 +3,9 @@ const LAUNCH1_API_URL = "https://script.google.com/macros/s/AKfycbwmKZPRkM--y7nu
 const Launch1Api = (function () {
   "use strict";
 
-  function loadOrderSummaryByToken(token) {
+  function call(action, payload) {
     return new Promise(function (resolve, reject) {
-      const callbackName = "lr1aCallback_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+      const callbackName = "lr1Callback_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
       const script = document.createElement("script");
 
       window[callbackName] = function (response) {
@@ -14,9 +14,7 @@ const Launch1Api = (function () {
       };
 
       function cleanup() {
-        if (script.parentNode) {
-          script.parentNode.removeChild(script);
-        }
+        if (script.parentNode) script.parentNode.removeChild(script);
         delete window[callbackName];
       }
 
@@ -26,8 +24,8 @@ const Launch1Api = (function () {
       };
 
       const url = new URL(LAUNCH1_API_URL);
-      url.searchParams.set("action", "loadOrderSummaryByToken");
-      url.searchParams.set("payload", JSON.stringify({ token: token }));
+      url.searchParams.set("action", action);
+      url.searchParams.set("payload", JSON.stringify(payload || {}));
       url.searchParams.set("callback", callbackName);
 
       script.src = url.toString();
@@ -36,6 +34,11 @@ const Launch1Api = (function () {
   }
 
   return {
-    loadOrderSummaryByToken: loadOrderSummaryByToken
+    loadOrderSummaryByToken: function (token) {
+      return call("loadOrderSummaryByToken", { token: token });
+    },
+    recordPickupScan: function (payload) {
+      return call("recordPickupScan", payload);
+    }
   };
 })();
