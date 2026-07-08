@@ -6,15 +6,14 @@
   const pickupHandoffScreen = document.getElementById("pickupHandoffScreen");
   const scannerScreen = document.getElementById("scannerScreen");
   const errorScreen = document.getElementById("errorScreen");
-
   const allScreens = [loadingScreen, summaryScreen, pickupHandoffScreen, scannerScreen, errorScreen];
 
   let currentOrder = null;
   let scannerStarted = false;
+  let scanInFlight = false;
 
   document.addEventListener("DOMContentLoaded", function () {
     const token = getTokenFromUrl();
-
     if (!token) {
       showError("This order link is missing its secure order token.");
       return;
@@ -25,7 +24,6 @@
         if (!response || response.ok !== true) {
           throw new Error((response && response.message) || "Order could not be loaded.");
         }
-
         currentOrder = response.orderSummary || {};
         renderSummary(currentOrder);
         showScreen(summaryScreen);
@@ -37,7 +35,6 @@
 
   document.getElementById("primaryActionButton").addEventListener("click", function () {
     const action = this.dataset.action || "start_pickup";
-
     if (action === "start_pickup") {
       renderPickupHandoff(currentOrder || {});
       showScreen(pickupHandoffScreen);
@@ -51,13 +48,11 @@
   });
 
   window.addEventListener("beforeunload", function () {
-    if (scannerStarted && typeof stopScannerEngine === "function") {
-      stopScannerEngine();
-    }
+    if (scannerStarted && typeof stopScannerEngine === "function") stopScannerEngine();
   });
 
   function startCameraFromUserTap() {
-    setScannerStatus("Preparing camera…");
+    setScannerStatus("Preparing camera…", "ready");
 
     if (typeof Html5Qrcode === "undefined") {
       setScannerStatus("Scanner library did not load. Please refresh and try again.", "error");
@@ -70,33 +65,66 @@
     }
 
     scannerStarted = true;
-
     startScannerEngine(handleScanSuccess, handleScanError);
 
     window.setTimeout(function () {
-      if (scannerStarted) {
-        setScannerStatus("Camera ready. Hold a QR code inside the camera view.", "ready");
-      }
+      if (scannerStarted) setScannerStatus("Camera ready. Scan one pickup item.", "ready");
     }, 1200);
   }
 
   function handleScanSuccess(decodedText) {
-    const value = String(decodedText || "").trim();
+    const itemId = normalizeScannedItemId(decodedText);
+    if (!itemId || scanInFlight) return;
 
-    if (!value) return;
+    scanInFlight = true;
+    setScannerStatus("Checking item " + itemId + "…", "ready");
 
-    document.getElementById("lastScan").textContent = value;
-    setScannerStatus("QR code detected. Scan recording will be added in the next slice.", "success");
+    Launch1Api.recordPickupScan({
+      agreementNumber: currentOrder.agreementNumber,
+      itemId: itemId,
+      customerName: currentOrder.customerName || "Customer"
+    })
+      .then(function (response) {
+        if (!response || response.ok !== true) {
+          throw new Error((response && response.message) || "This item could not be accepted for pickup.");
+        }
+        document.getElementById("lastScan").textContent = itemId;
+        setScannerStatus("Accepted: " + itemId + ". Pickup scan recorded.", "success");
+      })
+      .catch(function (error) {
+        setScannerStatus(error && error.message ? error.message : "This item could not be accepted.", "error");
+      })
+      .finally(function () {
+        window.setTimeout(function () { scanInFlight = false; }, 900);
+      });
+  }
+
+  function normalizeScannedItemId(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return "";
+
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed.itemId) return String(parsed.itemId).trim();
+      if (parsed.item_id) return String(parsed.item_id).trim();
+    } catch (error) {}
+
+    const queryIndex = raw.indexOf("?");
+    if (queryIndex !== -1) {
+      try {
+        const params = new URLSearchParams(raw.slice(queryIndex));
+        return (params.get("itemId") || params.get("item") || params.get("id") || raw).trim();
+      } catch (error) {}
+    }
+
+    return raw;
   }
 
   function handleScanError(error) {
     const message = error && (error.message || error.name)
       ? (error.name || "Error") + ": " + error.message
       : String(error || "");
-
-    if (message) {
-      setScannerStatus("Camera error: " + message, "error");
-    }
+    if (message) setScannerStatus("Camera error: " + message, "error");
   }
 
   function renderSummary(order) {
@@ -109,11 +137,8 @@
 
     const actionLabel = order.primaryActionLabel || "Start Pickup";
     const actionButton = document.getElementById("primaryActionButton");
-
     document.getElementById("primaryActionLabel").textContent = actionLabel;
-    document.getElementById("primaryActionMessage").textContent =
-      order.primaryActionMessage || "Start your pickup when you are ready.";
-
+    document.getElementById("primaryActionMessage").textContent = order.primaryActionMessage || "Start your pickup when you are ready.";
     actionButton.textContent = actionLabel;
     actionButton.dataset.action = order.primaryAction || "start_pickup";
   }
@@ -164,9 +189,7 @@
       screen.style.display = "none";
       screen.setAttribute("aria-hidden", "true");
     });
-
     if (!targetScreen) return;
-
     targetScreen.classList.add("screen-active");
     targetScreen.style.display = "block";
     targetScreen.setAttribute("aria-hidden", "false");
