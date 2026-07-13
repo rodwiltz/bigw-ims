@@ -45,6 +45,11 @@
   document.getElementById("openCameraButton").addEventListener("click", function () {
     renderScannerContext(currentOrder || {});
     showScreen(scannerScreen);
+
+    // Preserve direct-tap startup while forcing the visible scanner workspace
+    // to complete synchronous layout before html5-qrcode measures #reader.
+    scannerScreen.getBoundingClientRect();
+    window.scrollTo(0, 0);
     startCameraFromUserTap();
   });
 
