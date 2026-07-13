@@ -7,18 +7,31 @@ const Launch1Api = (function () {
     return new Promise(function (resolve, reject) {
       const callbackName = "lr1Callback_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
       const script = document.createElement("script");
+      let settled = false;
+
+      const timeoutId = window.setTimeout(function () {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        reject(new Error("Backend request timed out."));
+      }, 15000);
 
       window[callbackName] = function (response) {
+        if (settled) return;
+        settled = true;
         cleanup();
         resolve(response);
       };
 
       function cleanup() {
+        window.clearTimeout(timeoutId);
         if (script.parentNode) script.parentNode.removeChild(script);
-        delete window[callbackName];
+        try { delete window[callbackName]; } catch (error) { window[callbackName] = undefined; }
       }
 
       script.onerror = function () {
+        if (settled) return;
+        settled = true;
         cleanup();
         reject(new Error("Backend request failed."));
       };
@@ -27,6 +40,7 @@ const Launch1Api = (function () {
       url.searchParams.set("action", action);
       url.searchParams.set("payload", JSON.stringify(payload || {}));
       url.searchParams.set("callback", callbackName);
+      url.searchParams.set("_", String(Date.now()));
 
       script.src = url.toString();
       document.body.appendChild(script);
