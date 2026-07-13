@@ -8,18 +8,19 @@
   const errorScreen = document.getElementById("errorScreen");
   const allScreens = [loadingScreen, summaryScreen, pickupHandoffScreen, scannerScreen, errorScreen];
 
+  let activeToken = "";
   let currentOrder = null;
   let scannerStarted = false;
   let scanInFlight = false;
 
   document.addEventListener("DOMContentLoaded", function () {
-    const token = getTokenFromUrl();
-    if (!token) {
+    activeToken = getTokenFromUrl();
+    if (!activeToken) {
       showError("This order link is missing its secure order token.");
       return;
     }
 
-    Launch1Api.loadOrderSummaryByToken(token)
+    Launch1Api.loadOrderSummaryByToken(activeToken)
       .then(function (response) {
         if (!response || response.ok !== true) {
           throw new Error((response && response.message) || "Order could not be loaded.");
@@ -53,22 +54,19 @@
 
   function startCameraFromUserTap() {
     setScannerStatus("Preparing camera…", "ready");
-
     if (typeof Html5Qrcode === "undefined") {
       setScannerStatus("Scanner library did not load. Please refresh and try again.", "error");
       return;
     }
-
     if (typeof startScannerEngine !== "function") {
       setScannerStatus("Scanner support is not available. Please refresh and try again.", "error");
       return;
     }
 
     scannerStarted = true;
-    startScannerEngine(handleScanSuccess, handleScanError);
-
+    startScannerEngine(handleScanSuccess, handleScannerStartupError);
     window.setTimeout(function () {
-      if (scannerStarted) setScannerStatus("Camera ready. Scan one pickup item.", "ready");
+      if (scannerStarted && !scanInFlight) setScannerStatus("Camera ready. Scan one pickup item.", "ready");
     }, 1200);
   }
 
@@ -76,33 +74,38 @@
     const itemId = normalizeScannedItemId(decodedText);
     if (!itemId || scanInFlight) return;
 
+    if (!activeToken || !currentOrder || !currentOrder.agreementNumber) {
+      setScannerStatus("Order context is missing. Reopen the order link and try again.", "error");
+      return;
+    }
+
     scanInFlight = true;
-    setScannerStatus("Checking item " + itemId + "…", "ready");
+    setScannerStatus("Saving pickup scan for " + itemId + "…", "ready");
 
     Launch1Api.recordPickupScan({
+      token: activeToken,
       agreementNumber: currentOrder.agreementNumber,
       itemId: itemId,
       customerName: currentOrder.customerName || "Customer"
     })
       .then(function (response) {
         if (!response || response.ok !== true) {
-          throw new Error((response && response.message) || "This item could not be accepted for pickup.");
+          throw new Error((response && response.message) || "The pickup scan could not be saved.");
         }
         document.getElementById("lastScan").textContent = itemId;
-        setScannerStatus("Accepted: " + itemId + ". Pickup scan recorded.", "success");
+        setScannerStatus("Accepted: " + itemId + ". Pickup scan saved.", "success");
       })
       .catch(function (error) {
-        setScannerStatus(error && error.message ? error.message : "This item could not be accepted.", "error");
+        setScannerStatus("Pickup scan was not saved: " + (error && error.message ? error.message : String(error)), "error");
       })
       .finally(function () {
-        window.setTimeout(function () { scanInFlight = false; }, 900);
+        window.setTimeout(function () { scanInFlight = false; }, 1200);
       });
   }
 
   function normalizeScannedItemId(value) {
     const raw = String(value || "").trim();
     if (!raw) return "";
-
     try {
       const parsed = JSON.parse(raw);
       if (parsed.itemId) return String(parsed.itemId).trim();
@@ -116,15 +119,17 @@
         return (params.get("itemId") || params.get("item") || params.get("id") || raw).trim();
       } catch (error) {}
     }
-
     return raw;
   }
 
-  function handleScanError(error) {
+  function handleScannerStartupError(error) {
     const message = error && (error.message || error.name)
-      ? (error.name || "Error") + ": " + error.message
+      ? (error.name || "Error") + ": " + (error.message || "")
       : String(error || "");
-    if (message) setScannerStatus("Camera error: " + message, "error");
+    const lower = message.toLowerCase();
+    if (lower.indexOf("permission") !== -1 || lower.indexOf("notallowed") !== -1 || lower.indexOf("camera") !== -1) {
+      setScannerStatus("Camera error: " + message, "error");
+    }
   }
 
   function renderSummary(order) {
@@ -134,7 +139,6 @@
     document.getElementById("returnDueAt").textContent = formatDate(order.returnDueAt);
     document.getElementById("orderStatus").textContent = order.orderStatus || "—";
     document.getElementById("itemSummary").textContent = order.itemSummary || "—";
-
     const actionLabel = order.primaryActionLabel || "Start Pickup";
     const actionButton = document.getElementById("primaryActionButton");
     document.getElementById("primaryActionLabel").textContent = actionLabel;
