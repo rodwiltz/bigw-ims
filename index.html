@@ -11,11 +11,11 @@
 </head>
 <body>
   <main class="app-shell">
-    <section class="screen screen-active" id="loadingScreen"><div class="card"><p class="eyebrow"><img src="assets/brand/logo-primary.png" alt="Big W Events" style="display:block;width:auto;height:auto;max-width:190px;max-height:58px;margin:0 auto;object-fit:contain;"></p><h1 class="experience-title">Loading your order…</h1><p class="lead experience-subtitle">We’re checking your secure order link.</p></div></section>
+    <section class="screen screen-active" id="loadingScreen"><div class="card"><p class="eyebrow"><img src="assets/brand/logo-primary.png" alt="Big W Events" style="display:block;width:auto;height:auto;max-width:190px;max-height:58px;margin:0 auto;object-fit:contain;"></p><h1>Loading your order…</h1><p class="lead">We’re checking your secure order link.</p></div></section>
 
     <section class="screen" id="summaryScreen">
       <div class="card">
-        <p class="eyebrow experience-stage">Order Confirmation</p><h1 class="experience-title">You’re all set.</h1><p class="lead experience-subtitle">Please review your rental details.</p>
+        <p class="eyebrow">Order Confirmation</p><h1>You’re all set.</h1><p class="lead">Please review your rental details.</p>
         <section class="summary-panel">
           <div><span>Agreement</span><strong id="agreement">—</strong></div>
           <div><span>Customer</span><strong id="customer">—</strong></div>
@@ -34,12 +34,12 @@
 
     <section class="screen" id="pickupHandoffScreen">
       <div class="card">
-        <p class="eyebrow experience-stage">Pickup</p><h1 class="experience-title">Let’s get your rental.</h1>
-        <p class="lead experience-subtitle">You’ll scan each item as you pick it up so we can confirm everything is correct.</p>
+        <p class="eyebrow">Pickup</p><h1>Let’s get your rental.</h1>
+        <p class="lead">You’ll scan each item as you pick it up so we can confirm everything is correct.</p>
         <section class="summary-panel">
           <div><span>Agreement</span><strong id="pickupAgreement">—</strong></div>
           <div><span>Customer</span><strong id="pickupCustomer">—</strong></div>
-          <div><span>Items</span><strong id="pickupItems">—</strong></div>
+          <div class="focus-card-shell"><span>Current Task</span><strong id="handoffTask">Scan your pickup items</strong><small id="handoffRemaining">Your items are ready.</small></div>
         </section>
         <section class="action-panel">
           <span>Next Step</span><strong>Open Camera</strong>
@@ -51,19 +51,19 @@
 
     <section class="screen" id="scannerScreen">
       <div class="card">
-        <p class="eyebrow experience-stage"><img src="assets/brand/app-icon.png" alt="" aria-hidden="true" style="display:inline-block;width:26px;height:26px;vertical-align:middle;margin-right:8px;object-fit:contain;">Pickup Scanner</p><h1 class="experience-title">Scan your items.</h1><p class="lead experience-subtitle">Hold each QR code inside the camera view.</p>
+        <p class="eyebrow"><img src="assets/brand/app-icon.png" alt="" aria-hidden="true" style="display:inline-block;width:26px;height:26px;vertical-align:middle;margin-right:8px;object-fit:contain;">Pickup Scanner</p><h1>Scan your items.</h1><p class="lead">Hold each QR code inside the camera view.</p>
         <section class="summary-panel">
           <div><span>Agreement</span><strong id="scannerAgreement">—</strong></div>
           <div><span>Customer</span><strong id="scannerCustomer">—</strong></div>
-          <div><span>Items</span><strong id="scannerItems">—</strong></div>
+          <div class="focus-card-shell"><span>Current Task</span><strong id="currentTask">Scan your pickup items</strong><small id="taskProgressText">Ready to begin</small><div id="taskProgress" role="progressbar" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0"><div id="taskProgressBar"></div></div></div>
         </section>
         <div id="reader" class="reader"></div>
         <p class="scanner-status" id="scannerStatus" role="status">Preparing camera…</p>
-        <section class="scan-panel"><span>Last Accepted Scan</span><strong id="lastScan">No item scanned yet.</strong></section>
+        <section class="scan-panel"><span>Last Accepted Scan</span><strong id="lastScan">No item scanned yet.</strong></section><section class="action-panel"><strong id="guidanceTitle">Place the QR code inside the square.</strong><p id="guidanceCopy">Keep the item steady until we confirm the scan.</p></section>
       </div>
     </section>
 
-    <section class="screen" id="errorScreen"><div class="card"><p class="eyebrow experience-stage">Order Link</p><h1 class="experience-title">We couldn’t open this order.</h1><p class="lead experience-subtitle" id="errorMessage">This order link may be invalid, expired, or temporarily unavailable.</p></div></section>
+    <section class="screen" id="errorScreen"><div class="card"><p class="eyebrow">Order Link</p><h1>We couldn’t open this order.</h1><p class="lead" id="errorMessage">This order link may be invalid, expired, or temporarily unavailable.</p></div></section>
   </main>
   <script src="js/api.js"></script>
   <script src="js/scanner.js"></script>
