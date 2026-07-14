@@ -51,6 +51,9 @@ const Launch1Api = (function () {
     loadOrderSummaryByToken: function (token) {
       return call("loadOrderSummaryByToken", { token: token });
     },
+    loadPickupGuidance: function (payload) {
+      return call("loadPickupGuidance", payload);
+    },
     recordPickupScan: function (payload) {
       return call("recordPickupScan", payload);
     }
