@@ -35,16 +35,12 @@
     <section class="screen" id="pickupHandoffScreen">
       <div class="card">
         <p class="eyebrow">Pickup</p><h1>Let’s get your rental.</h1>
-        <p class="lead">You’ll scan each item as you pick it up so we can confirm everything is correct.</p>
-        <section class="summary-panel">
-          <div><span>Agreement</span><strong id="pickupAgreement">—</strong></div>
-          <div><span>Customer</span><strong id="pickupCustomer">—</strong></div>
-          <div class="focus-card-shell">
-            <strong id="handoffTask">Scan your pickup items</strong>
-            <span class="focus-card-label">Remaining</span>
-            <span class="focus-card-remaining" id="handoffRemaining">Your items are ready.</span>
-          </div>
-        </section>
+        <p class="lead">You’ll scan each item as you load it so we can confirm everything is correct.</p>
+        <p class="pickup-context">
+          <span id="pickupCustomer">Customer</span>
+          <span aria-hidden="true">•</span>
+          <span id="pickupAgreement">Agreement</span>
+        </p>
         <section class="action-panel">
           <span>Next Step</span><strong>Open Camera</strong>
           <p>The next screen will open your camera so you can scan each item.</p>
@@ -56,18 +52,19 @@
     <section class="screen" id="scannerScreen">
       <div class="card">
         <p class="eyebrow scanner-eyebrow"><img src="assets/brand/app-icon.png" alt="" aria-hidden="true" class="brand-icon">Pickup Scanner</p><h1>Scan your items.</h1><p class="lead">Hold each QR code inside the camera view.</p>
-        <section class="summary-panel">
-          <div><span>Agreement</span><strong id="scannerAgreement">—</strong></div>
-          <div><span>Customer</span><strong id="scannerCustomer">—</strong></div>
-          <div class="focus-card-shell">
-            <strong id="currentTask">Scan your pickup items</strong>
-            <span class="focus-card-label">Remaining</span>
-            <span class="focus-card-remaining" id="taskProgressText">Your items are ready.</span>
-          </div>
+        <section class="focus-card-shell focus-card-shell--scanner">
+          <strong id="currentTask">Scan your pickup items</strong>
+          <span class="focus-card-label">Remaining</span>
+          <span class="focus-card-remaining" id="taskProgressText">Your items are ready.</span>
         </section>
-        <div id="reader" class="reader"></div>
-        <p class="scanner-status" id="scannerStatus" role="status">Preparing camera…</p>
-        <section class="scan-panel"><span>Last Accepted Scan</span><strong id="lastScan">No item scanned yet.</strong></section>
+        <section class="camera-workspace">
+          <div id="reader" class="reader"></div>
+          <p class="scanner-status" id="scannerStatus" role="status">Preparing camera…</p>
+        </section>
+        <section class="scan-panel">
+          <span>Last Accepted Scan</span>
+          <strong id="lastScan">No item scanned yet.</strong>
+        </section>
       </div>
     </section>
 
