@@ -34,16 +34,16 @@
 
     <section class="screen" id="pickupHandoffScreen">
       <div class="card">
-        <p class="eyebrow">Pickup</p><h1>Let’s get your rental.</h1>
-        <p class="lead">You’ll scan each item as you load it so we can confirm everything is correct.</p>
+        <p class="eyebrow" id="handoffStageLabel">Pickup</p><h1 id="handoffTitle">Let’s get your rental.</h1>
+        <p class="lead" id="handoffCopy">You’ll scan each item as you load it so we can confirm everything is correct.</p>
         <p class="pickup-context">
           <span id="pickupCustomer">Customer</span>
           <span aria-hidden="true">•</span>
           <span id="pickupAgreement">Agreement</span>
         </p>
         <section class="action-panel">
-          <span>Next Step</span><strong>Open Camera</strong>
-          <p>The next screen will open your camera so you can scan each item.</p>
+          <span>Next Step</span><strong id="handoffActionTitle">Open Camera</strong>
+          <p id="handoffActionCopy">The next screen will open your camera so you can scan each item.</p>
           <button id="openCameraButton" type="button">Open Camera</button>
         </section>
       </div>
@@ -51,7 +51,7 @@
 
     <section class="screen" id="scannerScreen">
       <div class="card">
-        <p class="eyebrow scanner-eyebrow"><img src="assets/brand/app-icon.png" alt="" aria-hidden="true" class="brand-icon">Pickup Scanner</p><h1>Scan your items.</h1><p class="lead">Hold each QR code inside the camera view.</p>
+        <p class="eyebrow scanner-eyebrow"><img src="assets/brand/app-icon.png" alt="" aria-hidden="true" class="brand-icon"><span id="scannerStageLabel">Pickup Scanner</span></p><h1 id="scannerTitle">Scan your items.</h1><p class="lead" id="scannerLead">Hold each QR code inside the camera view.</p>
         <section class="focus-card-shell focus-card-shell--scanner">
           <strong id="currentTask">Scan your pickup items</strong>
           <span class="focus-card-label">Remaining</span>
