@@ -246,18 +246,9 @@
       order.agreementNumber || "—";
     document.getElementById("pickupCustomer").textContent =
       order.customerName || "—";
-
-    const focusState = getFocusState(order.itemSummary);
-    document.getElementById("handoffTask").textContent = focusState.task;
-    document.getElementById("handoffRemaining").textContent =
-      focusState.remaining;
   }
 
   function renderScannerContext(order) {
-    document.getElementById("scannerAgreement").textContent =
-      order.agreementNumber || "—";
-    document.getElementById("scannerCustomer").textContent =
-      order.customerName || "—";
     document.getElementById("lastScan").textContent =
       "No item scanned yet.";
 
