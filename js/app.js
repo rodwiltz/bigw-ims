@@ -67,6 +67,13 @@
       showScreen(scannerScreen);
 
       /*
+       * Resolve guidance immediately after the scanner screen becomes active.
+       * This request runs independently of camera startup so it does not break
+       * the direct user-gesture chain required by mobile Safari.
+       */
+      refreshPickupGuidance();
+
+      /*
        * Keep the entire scanner startup inside the direct customer-tap path.
        * Reading layout synchronously confirms #reader is visible before the
        * scanner library measures and builds its qrbox overlay.
@@ -308,8 +315,8 @@
     const remaining = document.getElementById("taskProgressText");
 
     if (guidance.complete === true) {
-      task.textContent = "Pickup scanning complete";
-      remaining.textContent = "0 items remaining";
+      task.textContent = "Pickup Complete";
+      remaining.textContent = "Everything has been scanned.";
       return;
     }
 
