@@ -17,6 +17,7 @@
 
   let activeToken = "";
   let currentOrder = null;
+  let activeFlow = "pickup";
   let scannerStarted = false;
   let scanInFlight = false;
   let lastSubmittedItemId = "";
@@ -56,8 +57,9 @@
     .addEventListener("click", function () {
       const action = this.dataset.action || "start_pickup";
 
-      if (action === "start_pickup") {
-        renderPickupHandoff(currentOrder || {});
+      if (action === "start_pickup" || action === "start_return") {
+        activeFlow = action === "start_return" ? "return" : "pickup";
+        renderHandoff(currentOrder || {});
         showScreen(pickupHandoffScreen);
       }
     });
@@ -73,7 +75,7 @@
        * This request runs independently of camera startup so it does not break
        * the direct user-gesture chain required by mobile Safari.
        */
-      refreshPickupGuidance();
+      refreshGuidance();
 
       /*
        * Keep the entire scanner startup inside the direct customer-tap path.
@@ -171,19 +173,29 @@
       "ready"
     );
 
-    Launch1Api.recordPickupScan({
+    const scanRequest = {
       token: activeToken,
       agreementNumber: currentOrder.agreementNumber,
       itemId: itemId,
       customerName: currentOrder.customerName || "Customer"
-    })
+    };
+
+    const scanPromise = activeFlow === "return"
+      ? Launch1Api.recordReturnScan(scanRequest)
+      : Launch1Api.recordPickupScan(scanRequest);
+
+    scanPromise
       .then(function (response) {
         if (!response) {
-          throw new Error("The pickup scan returned no response.");
+          throw new Error(
+            activeFlow === "return"
+              ? "The return scan returned no response."
+              : "The pickup scan returned no response."
+          );
         }
 
         if (response.guidance) {
-          renderPickupGuidance(response.guidance);
+          renderGuidance(response.guidance);
         }
 
         if (response.ok !== true) {
@@ -207,7 +219,9 @@
         document.getElementById("lastScan").textContent =
           "Confirmation failed: " + itemId;
         setScannerStatus(
-          "Pickup scan was not saved: " +
+          (activeFlow === "return"
+            ? "Return scan was not saved: "
+            : "Pickup scan was not saved: ") +
             (error && error.message ? error.message : String(error)),
           "error"
         );
@@ -288,23 +302,48 @@
     actionButton.dataset.action = order.primaryAction || "start_pickup";
   }
 
-  function renderPickupHandoff(order) {
+  function renderHandoff(order) {
     document.getElementById("pickupAgreement").textContent =
       order.agreementNumber || "—";
     document.getElementById("pickupCustomer").textContent =
       order.customerName || "—";
+
+    const isReturn = activeFlow === "return";
+
+    document.getElementById("handoffStageLabel").textContent =
+      isReturn ? "Return" : "Pickup";
+    document.getElementById("handoffTitle").textContent =
+      isReturn ? "Let’s return your rental." : "Let’s get your rental.";
+    document.getElementById("handoffCopy").textContent =
+      isReturn
+        ? "You’ll scan each item as you return it so we can confirm everything is back."
+        : "You’ll scan each item as you load it so we can confirm everything is correct.";
+    document.getElementById("handoffActionTitle").textContent =
+      "Open Camera";
+    document.getElementById("handoffActionCopy").textContent =
+      isReturn
+        ? "The next screen will open your camera so you can scan each returned item."
+        : "The next screen will open your camera so you can scan each item.";
   }
 
   function renderScannerContext() {
+    const isReturn = activeFlow === "return";
+
     document.getElementById("lastScan").textContent =
       "No item scanned yet.";
+    document.getElementById("scannerStageLabel").textContent =
+      isReturn ? "Return Scanner" : "Pickup Scanner";
+    document.getElementById("scannerTitle").textContent =
+      isReturn ? "Return your items." : "Scan your items.";
+    document.getElementById("scannerLead").textContent =
+      "Hold each QR code inside the camera view.";
     document.getElementById("currentTask").textContent =
-      "Loading pickup task…";
+      isReturn ? "Loading return task…" : "Loading pickup task…";
     document.getElementById("taskProgressText").textContent =
       "Checking what remains";
   }
 
-  function refreshPickupGuidance() {
+  function refreshGuidance() {
     if (!activeToken || !currentOrder || !currentOrder.agreementNumber) {
       setScannerStatus(
         "Order context is missing. Reopen the order link and try again.",
@@ -313,47 +352,64 @@
       return;
     }
 
-    Launch1Api.loadPickupGuidance({
+    const payload = {
       token: activeToken,
       agreementNumber: currentOrder.agreementNumber
-    })
+    };
+
+    const guidancePromise = activeFlow === "return"
+      ? Launch1Api.loadReturnGuidance(payload)
+      : Launch1Api.loadPickupGuidance(payload);
+
+    guidancePromise
       .then(function (response) {
         if (!response || response.ok !== true || !response.guidance) {
           throw new Error(
             (response && response.message) ||
-              "Pickup guidance could not be loaded."
+              (activeFlow === "return"
+                ? "Return guidance could not be loaded."
+                : "Pickup guidance could not be loaded.")
           );
         }
 
-        renderPickupGuidance(response.guidance);
+        renderGuidance(response.guidance);
       })
       .catch(function (error) {
         document.getElementById("currentTask").textContent =
-          "Scan your pickup items";
+          activeFlow === "return"
+            ? "Return your rental items"
+            : "Scan your pickup items";
         document.getElementById("taskProgressText").textContent =
           "Guidance unavailable";
         setScannerStatus(
           error && error.message
             ? error.message
-            : "Pickup guidance could not be loaded.",
+            : (activeFlow === "return"
+                ? "Return guidance could not be loaded."
+                : "Pickup guidance could not be loaded."),
           "error"
         );
       });
   }
 
-  function renderPickupGuidance(guidance) {
+  function renderGuidance(guidance) {
     const task = document.getElementById("currentTask");
     const remaining = document.getElementById("taskProgressText");
 
     if (guidance.complete === true) {
-      task.textContent = "Pickup Complete";
-      remaining.textContent = "Everything has been scanned.";
+      task.textContent =
+        activeFlow === "return" ? "Return Complete" : "Pickup Complete";
+      remaining.textContent =
+        activeFlow === "return"
+          ? "Everything has been returned."
+          : "Everything has been scanned.";
       return;
     }
 
     task.textContent =
       guidance.taskLabel ||
-      ("Scan " + (guidance.currentCategory || "pickup items"));
+      ((activeFlow === "return" ? "Return " : "Scan ") +
+        (guidance.currentCategory || "items"));
 
     remaining.textContent =
       guidance.remainingLabel ||
