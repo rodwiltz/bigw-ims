@@ -1,56 +1,472 @@
-:root{--purple:#5B3FD3;--deep:#2E1A66;--gold:#D4A72C;--bg:#F8F6F2;--soft:#F4F2EC;--border:#DDD8CC;--text:#222;--muted:#5D6675;--success:#2E9B58;--error:#C23A3A;--shadow:0 16px 40px rgba(0,0,0,.16);--font:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh;font-family:var(--font);color:var(--text);background:radial-gradient(circle at 18% 4%,rgba(212,167,44,.18),transparent 20rem),radial-gradient(circle at 82% 12%,rgba(91,63,211,.18),transparent 24rem),linear-gradient(180deg,#fff 0%,var(--bg) 58%,#f1eee7 100%)}
-.app-shell{width:min(100%,560px);min-height:100vh;margin:0 auto;padding:20px;display:grid;align-items:center}
-.screen{display:none}
-.screen.screen-active,.screen.screen--active{display:block}
-.card{display:grid;gap:18px;padding:28px;background:rgba(255,255,255,.96);border:1px solid var(--border);border-radius:28px;box-shadow:var(--shadow)}
-.card:before{content:"";width:72px;height:5px;margin:0 auto 4px;background:linear-gradient(90deg,var(--deep),var(--gold));border-radius:999px}
-.eyebrow{margin:0;color:var(--purple);font-size:12px;font-weight:800;letter-spacing:.12em;text-align:center;text-transform:uppercase}
-h1{margin:0;color:var(--deep);font-size:clamp(32px,8vw,44px);line-height:1.08;text-align:center}
-.lead{margin:0;color:var(--muted);text-align:center}
-.summary-panel,.action-panel,.scan-panel{display:grid;gap:14px;padding:18px;background:var(--soft);border:1px solid var(--border);border-left:4px solid var(--gold);border-radius:14px}
-.summary-panel div{display:grid;gap:3px}
-.summary-panel span,.action-panel span,.scan-panel span{color:var(--muted);font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
-.summary-panel strong,.action-panel strong,.scan-panel strong{overflow-wrap:anywhere}
-.action-panel p{margin:0;color:var(--muted)}
-button{min-height:46px;width:100%;padding:12px 16px;color:#fff;background:linear-gradient(180deg,var(--purple),var(--deep));border:1px solid rgba(91,63,211,.92);border-radius:10px;font:inherit;font-weight:800;cursor:pointer}
-
-/*
- * html5-qrcode owns the internal scanner DOM and overlay geometry.
- * Constrain only the outer workspace. Do not force internal div/canvas
- * elements to 100% height, because that removes/distorts the qrbox overlay.
- */
-.reader{
-  width:100%;
-  min-height:240px;
-  overflow:hidden;
-  background:#111;
-  border:1px solid var(--border);
-  border-radius:20px;
-}
-.reader video{
-  width:100%!important;
-  height:auto!important;
-  max-height:360px!important;
-  object-fit:cover;
+:root {
+  --brand-purple: #4b2e83;
+  --brand-purple-deep: #2f175d;
+  --brand-purple-mid: #6d42c1;
+  --brand-gold: #d4af37;
+  --page: #f7f4fb;
+  --surface: #ffffff;
+  --surface-soft: #f3eff9;
+  --surface-purple: #efe8fb;
+  --border: #ddd5eb;
+  --text: #251a35;
+  --muted: #685f75;
+  --success: #277a4d;
+  --error: #b83c45;
+  --shadow: 0 18px 46px rgba(48, 28, 82, 0.14);
+  --radius-xl: 28px;
+  --radius-l: 20px;
+  --radius-m: 14px;
+  --font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-.scanner-status{margin:0;padding:10px 14px;color:#fff;text-align:center;background:rgba(34,34,34,.86);border-radius:999px;font-weight:800}
-.scanner-status--ready{background:rgba(34,34,34,.86)}
-.scanner-status--success{background:var(--success)}
-.scanner-status--error{background:var(--error)}
+* { box-sizing: border-box; }
 
-@media(max-width:599px){
-  .app-shell{min-height:100dvh;padding:10px;align-items:start}
-  #scannerScreen .card{gap:8px;padding:12px;border-radius:18px}
-  #scannerScreen .card:before{margin-bottom:0}
-  #scannerScreen h1{font-size:26px;line-height:1}
-  #scannerScreen .lead{font-size:14px;line-height:1.2}
-  #scannerScreen .summary-panel{grid-template-columns:1fr 1fr;gap:6px 10px;padding:8px 10px;font-size:13px}
-  #scannerScreen .summary-panel div:last-child{grid-column:1/-1}
-  #scannerScreen .reader{min-height:230px;border-radius:14px}
-  #scannerScreen .reader video{max-height:300px!important}
-  #scannerScreen .scanner-status{padding:8px 10px;font-size:13px}
-  #scannerScreen .scan-panel{gap:4px;padding:8px 10px;font-size:13px}
+html {
+  min-height: 100%;
+  background: var(--page);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font);
+  background:
+    radial-gradient(circle at 15% 0%, rgba(212, 175, 55, 0.15), transparent 24rem),
+    radial-gradient(circle at 90% 10%, rgba(109, 66, 193, 0.14), transparent 26rem),
+    linear-gradient(180deg, #ffffff 0%, var(--page) 62%, #eee8f5 100%);
+}
+
+button { font: inherit; }
+
+.app-shell {
+  width: min(100%, 560px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 18px;
+  display: grid;
+  align-items: center;
+}
+
+.screen { display: none; width: 100%; }
+.screen.screen-active,
+.screen.screen--active { display: block; }
+
+.screen-surface {
+  display: grid;
+  gap: 18px;
+  width: 100%;
+  padding: 26px;
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid rgba(221, 213, 235, 0.92);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+}
+
+.screen-surface--centered {
+  text-align: center;
+}
+
+.screen-surface--guided {
+  gap: 12px;
+}
+
+.brand-lockup {
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-lockup--compact {
+  min-height: 38px;
+  justify-content: flex-start;
+}
+
+.brand-lockup__image {
+  display: block;
+  width: auto;
+  max-width: 190px;
+  max-height: 54px;
+}
+
+.brand-lockup--compact .brand-lockup__image {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+}
+
+.brand-lockup__fallback {
+  color: var(--brand-purple);
+  font-size: 1.35rem;
+  font-weight: 850;
+  letter-spacing: -0.03em;
+}
+
+.experience-header {
+  display: grid;
+  gap: 8px;
+  text-align: center;
+}
+
+.experience-header--guided {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  text-align: left;
+}
+
+.experience-header--guided .experience-copy {
+  grid-column: 1 / -1;
+}
+
+.experience-kicker {
+  margin: 0;
+  color: var(--brand-purple);
+  font-size: 0.76rem;
+  line-height: 1rem;
+  font-weight: 850;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  color: var(--brand-purple-deep);
+  font-size: clamp(2rem, 8vw, 2.9rem);
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+}
+
+.experience-header--guided h1 {
+  font-size: clamp(1.75rem, 7vw, 2.25rem);
+}
+
+.experience-copy {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.rental-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 16px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-l);
+}
+
+.rental-summary div {
+  display: grid;
+  gap: 3px;
+}
+
+.rental-summary__wide {
+  grid-column: 1 / -1;
+}
+
+.rental-summary span,
+.scan-confirmation span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.order-context {
+  margin: -4px 0 0;
+  display: flex;
+  gap: 7px;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.order-context--header {
+  grid-column: 1 / -1;
+  justify-content: flex-start;
+  margin: 0;
+}
+
+.focus-card {
+  display: grid;
+  gap: 8px;
+  padding: 18px;
+  background:
+    linear-gradient(135deg, rgba(109, 66, 193, 0.11), rgba(212, 175, 55, 0.11)),
+    var(--surface);
+  border: 1px solid rgba(75, 46, 131, 0.18);
+  border-left: 5px solid var(--brand-gold);
+  border-radius: var(--radius-l);
+  box-shadow: 0 9px 22px rgba(48, 28, 82, 0.08);
+}
+
+.focus-card--entry {
+  text-align: left;
+}
+
+.focus-card__eyebrow {
+  margin: 0;
+  color: var(--brand-purple);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.focus-card h2 {
+  margin: 0;
+  color: var(--brand-purple-deep);
+  font-size: clamp(1.55rem, 6vw, 2.15rem);
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+}
+
+.focus-card p {
+  margin: 0;
+}
+
+.focus-card__remaining {
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.task-progress {
+  height: 9px;
+  overflow: hidden;
+  background: rgba(75, 46, 131, 0.12);
+  border-radius: 999px;
+}
+
+.task-progress__bar {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, var(--brand-purple), var(--brand-gold));
+  border-radius: inherit;
+  transition: width 180ms ease;
+}
+
+.camera-workspace {
+  overflow: hidden;
+  background: #16131d;
+  border: 1px solid rgba(75, 46, 131, 0.24);
+  border-radius: var(--radius-l);
+  box-shadow: 0 12px 28px rgba(25, 18, 37, 0.18);
+}
+
+.reader {
+  width: 100%;
+  min-height: 240px;
+  overflow: hidden;
+  background: #111;
+}
+
+.reader video {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 360px !important;
+  object-fit: cover;
+}
+
+.camera-feedback {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  background: #ffffff;
+}
+
+.scanner-status {
+  margin: 0;
+  padding: 9px 12px;
+  color: #ffffff;
+  text-align: center;
+  background: var(--brand-purple-deep);
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.scanner-status--ready { background: var(--brand-purple-deep); }
+.scanner-status--success { background: var(--success); }
+.scanner-status--error { background: var(--error); }
+
+.scan-confirmation {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  color: var(--text);
+  background: var(--surface-soft);
+  border-radius: 10px;
+}
+
+.guidance-message {
+  display: grid;
+  gap: 4px;
+  padding: 13px 15px;
+  background: #fffaf0;
+  border: 1px solid rgba(212, 175, 55, 0.38);
+  border-radius: var(--radius-m);
+}
+
+.guidance-message strong {
+  color: var(--brand-purple-deep);
+}
+
+.guidance-message p,
+.support-actions p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.support-actions {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.support-actions summary {
+  color: var(--brand-purple);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.support-actions p {
+  padding-top: 7px;
+}
+
+.primary-action {
+  width: 100%;
+  min-height: 50px;
+  padding: 13px 18px;
+  color: #ffffff;
+  background: linear-gradient(180deg, var(--brand-purple-mid), var(--brand-purple-deep));
+  border: 0;
+  border-radius: 999px;
+  font-weight: 850;
+  box-shadow: 0 10px 22px rgba(75, 46, 131, 0.24);
+  cursor: pointer;
+}
+
+.primary-action:focus-visible,
+.support-actions summary:focus-visible {
+  outline: 4px solid rgba(212, 175, 55, 0.45);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .task-progress__bar { transition: none; }
+}
+
+@media (max-width: 599px) {
+  .app-shell {
+    min-height: 100dvh;
+    padding: 9px;
+    align-items: start;
+  }
+
+  .screen-surface {
+    gap: 13px;
+    padding: 17px;
+    border-radius: 20px;
+  }
+
+  .screen-surface--guided {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .experience-header--guided {
+    gap: 7px;
+  }
+
+  .brand-lockup--compact .brand-lockup__image {
+    width: 34px;
+    height: 34px;
+  }
+
+  .experience-header--guided h1 {
+    font-size: 1.65rem;
+  }
+
+  .order-context--header {
+    font-size: 0.76rem;
+  }
+
+  .focus-card {
+    gap: 5px;
+    padding: 11px 13px;
+    border-radius: 14px;
+  }
+
+  .focus-card h2 {
+    font-size: 1.42rem;
+  }
+
+  .focus-card__remaining {
+    font-size: 0.88rem;
+  }
+
+  .reader {
+    min-height: 230px;
+  }
+
+  .reader video {
+    max-height: 300px !important;
+  }
+
+  .camera-feedback {
+    gap: 6px;
+    padding: 7px;
+  }
+
+  .scanner-status {
+    padding: 7px 9px;
+    font-size: 0.78rem;
+  }
+
+  .scan-confirmation {
+    padding: 6px 8px;
+    font-size: 0.84rem;
+  }
+
+  .guidance-message {
+    padding: 9px 11px;
+    font-size: 0.86rem;
+  }
+}
+
+
+/* ER-001R2 — Design-approved production assets */
+.brand-lockup__image {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(100%, 210px);
+  max-height: 72px;
+  object-fit: contain;
+}
+
+.brand-lockup--compact .brand-lockup__image {
+  width: 42px;
+  height: 42px;
+  max-width: 42px;
+  max-height: 42px;
+  object-fit: contain;
+}
+
+@media (max-width: 599px) {
+  .brand-lockup__image {
+    max-width: 170px;
+    max-height: 60px;
+  }
+
+  .brand-lockup--compact .brand-lockup__image {
+    width: 34px;
+    height: 34px;
+    max-width: 34px;
+    max-height: 34px;
+  }
 }
