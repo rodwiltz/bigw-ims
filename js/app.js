@@ -246,8 +246,13 @@
       order.agreementNumber || "—";
     document.getElementById("pickupCustomer").textContent =
       order.customerName || "—";
-    document.getElementById("pickupItems").textContent =
-      order.itemSummary || "—";
+
+    const focusState = getAvailableFocusState(order.itemSummary);
+
+    document.getElementById("handoffTask").textContent =
+      focusState.task;
+    document.getElementById("handoffRemaining").textContent =
+      focusState.remaining;
   }
 
   function renderScannerContext(order) {
@@ -255,10 +260,46 @@
       order.agreementNumber || "—";
     document.getElementById("scannerCustomer").textContent =
       order.customerName || "—";
-    document.getElementById("scannerItems").textContent =
-      order.itemSummary || "—";
     document.getElementById("lastScan").textContent =
       "No item scanned yet.";
+
+    const focusState = getAvailableFocusState(order.itemSummary);
+
+    document.getElementById("currentTask").textContent =
+      focusState.task;
+    document.getElementById("taskProgressText").textContent =
+      focusState.remaining;
+
+    const progress = document.getElementById("taskProgress");
+    const progressBar = document.getElementById("taskProgressBar");
+
+    progress.setAttribute("aria-valuemax", "1");
+    progress.setAttribute("aria-valuenow", "0");
+    progressBar.style.width = "0%";
+  }
+
+  function getAvailableFocusState(itemSummary) {
+    const summary = String(itemSummary || "").trim();
+    const firstGroup = summary.split(/[,;]+/)[0].trim();
+    const match = firstGroup.match(/^(\d+)\s+(.+)$/);
+
+    if (match) {
+      const quantity = Number(match[1]);
+      const label = match[2].trim();
+
+      return {
+        task: "Scan " + label,
+        remaining:
+          "Remaining: " + quantity + " " + label
+      };
+    }
+
+    return {
+      task: "Scan your pickup items",
+      remaining: summary
+        ? "Remaining: " + summary
+        : "Your items are ready."
+    };
   }
 
   function setScannerStatus(message, tone) {
