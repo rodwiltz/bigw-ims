@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Big W Events | Order Summary</title>
+  <title>Big W Events | Guided Pickup</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" type="image/png" href="assets/brand/app-icon.png">
   <link rel="apple-touch-icon" href="assets/brand/app-icon.png">
@@ -11,60 +11,168 @@
 </head>
 <body>
   <main class="app-shell">
-    <section class="screen screen-active" id="loadingScreen"><div class="card"><p class="eyebrow"><img src="assets/brand/logo-primary.png" alt="Big W Events" style="display:block;width:auto;height:auto;max-width:190px;max-height:58px;margin:0 auto;object-fit:contain;"></p><h1>Loading your order…</h1><p class="lead">We’re checking your secure order link.</p></div></section>
+    <section class="screen screen-active" id="loadingScreen">
+      <div class="screen-surface screen-surface--centered">
+        <div class="brand-lockup" aria-label="Big W Events">
+          <img
+            class="brand-lockup__image"
+            src="assets/brand/logo-primary.png"
+            alt="Big W Events"
+          >
+        </div>
+        <p class="experience-kicker">Preparing your rental</p>
+        <h1>Loading your order…</h1>
+        <p class="experience-copy">We’re opening the right pickup experience for you.</p>
+      </div>
+    </section>
 
     <section class="screen" id="summaryScreen">
-      <div class="card">
-        <p class="eyebrow">Order Confirmation</p><h1>You’re all set.</h1><p class="lead">Please review your rental details.</p>
-        <section class="summary-panel">
+      <div class="screen-surface">
+        <header class="experience-header">
+          <div class="brand-lockup" aria-label="Big W Events">
+            <img
+              class="brand-lockup__image"
+              src="assets/brand/logo-primary.png"
+              alt="Big W Events"
+            >
+          </div>
+          <p class="experience-kicker">Order Confirmation</p>
+          <h1>You’re all set.</h1>
+          <p class="experience-copy">Review your rental details, then begin when you’re ready.</p>
+        </header>
+
+        <section class="rental-summary" aria-label="Your rental">
           <div><span>Agreement</span><strong id="agreement">—</strong></div>
           <div><span>Customer</span><strong id="customer">—</strong></div>
-          <div><span>Pickup / Checkout</span><strong id="pickupAt">—</strong></div>
-          <div><span>Return Due</span><strong id="returnDueAt">—</strong></div>
+          <div><span>Pickup</span><strong id="pickupAt">—</strong></div>
+          <div><span>Return</span><strong id="returnDueAt">—</strong></div>
           <div><span>Status</span><strong id="orderStatus">—</strong></div>
-          <div><span>Items</span><strong id="itemSummary">—</strong></div>
+          <div class="rental-summary__wide"><span>Your Items</span><strong id="itemSummary">—</strong></div>
         </section>
-        <section class="action-panel">
-          <span>Next Step</span><strong id="primaryActionLabel">—</strong>
-          <p id="primaryActionMessage">Project Victory will guide the correct next step for this order.</p>
-          <button id="primaryActionButton" type="button">Continue</button>
+
+        <section class="focus-card focus-card--entry">
+          <p class="focus-card__eyebrow">Your next step</p>
+          <h2 id="primaryActionLabel">—</h2>
+          <p id="primaryActionMessage">We’ll guide you one step at a time.</p>
         </section>
+
+        <button class="primary-action" id="primaryActionButton" type="button">Continue</button>
       </div>
     </section>
 
     <section class="screen" id="pickupHandoffScreen">
-      <div class="card">
-        <p class="eyebrow">Pickup</p><h1>Let’s get your rental.</h1>
-        <p class="lead">You’ll scan each item as you pick it up so we can confirm everything is correct.</p>
-        <section class="summary-panel">
-          <div><span>Agreement</span><strong id="pickupAgreement">—</strong></div>
-          <div><span>Customer</span><strong id="pickupCustomer">—</strong></div>
-          <div class="focus-card-shell"><span>Current Task</span><strong id="handoffTask">Scan your pickup items</strong><small id="handoffRemaining">Your items are ready.</small></div>
+      <div class="screen-surface">
+        <header class="experience-header experience-header--guided">
+          <div class="brand-lockup brand-lockup--compact" aria-label="Big W Events">
+            <img
+              class="brand-lockup__image"
+              src="assets/brand/app-icon.png"
+              alt="Big W Events"
+            >
+          </div>
+          <p class="experience-kicker">Guided Pickup</p>
+          <h1>Let’s get your rental.</h1>
+          <p class="experience-copy">We’ll show you exactly what to scan next.</p>
+        </header>
+
+        <p class="order-context">
+          <span id="pickupCustomer">Customer</span>
+          <span aria-hidden="true">•</span>
+          <span id="pickupAgreement">Agreement</span>
+        </p>
+
+        <section class="focus-card">
+          <p class="focus-card__eyebrow">Current task</p>
+          <h2 id="handoffTask">Scan your pickup items</h2>
+          <p class="focus-card__remaining" id="handoffRemaining">Your items are ready.</p>
         </section>
-        <section class="action-panel">
-          <span>Next Step</span><strong>Open Camera</strong>
-          <p>The next screen will open your camera so you can scan each item.</p>
-          <button id="openCameraButton" type="button">Open Camera</button>
+
+        <section class="guidance-message">
+          <strong>Scan one item at a time.</strong>
+          <p>Hold each Big W QR code inside the frame. We’ll confirm it before you continue.</p>
         </section>
+
+        <button class="primary-action" id="openCameraButton" type="button">Open Camera</button>
       </div>
     </section>
 
     <section class="screen" id="scannerScreen">
-      <div class="card">
-        <p class="eyebrow"><img src="assets/brand/app-icon.png" alt="" aria-hidden="true" style="display:inline-block;width:26px;height:26px;vertical-align:middle;margin-right:8px;object-fit:contain;">Pickup Scanner</p><h1>Scan your items.</h1><p class="lead">Hold each QR code inside the camera view.</p>
-        <section class="summary-panel">
-          <div><span>Agreement</span><strong id="scannerAgreement">—</strong></div>
-          <div><span>Customer</span><strong id="scannerCustomer">—</strong></div>
-          <div class="focus-card-shell"><span>Current Task</span><strong id="currentTask">Scan your pickup items</strong><small id="taskProgressText">Ready to begin</small><div id="taskProgress" role="progressbar" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0"><div id="taskProgressBar"></div></div></div>
+      <div class="screen-surface screen-surface--guided">
+        <header class="experience-header experience-header--guided">
+          <div class="brand-lockup brand-lockup--compact" aria-label="Big W Events">
+            <img
+              class="brand-lockup__image"
+              src="assets/brand/app-icon.png"
+              alt="Big W Events"
+            >
+          </div>
+          <div>
+            <p class="experience-kicker">Guided Pickup</p>
+            <h1>Pick up your rental.</h1>
+          </div>
+          <p class="order-context order-context--header">
+            <span id="scannerCustomer">Customer</span>
+            <span aria-hidden="true">•</span>
+            <span id="scannerAgreement">Agreement</span>
+          </p>
+        </header>
+
+        <section class="focus-card" aria-live="polite">
+          <p class="focus-card__eyebrow">Current task</p>
+          <h2 id="currentTask">Scan your pickup items</h2>
+          <p class="focus-card__remaining" id="taskProgressText">Ready to begin</p>
+          <div
+            class="task-progress"
+            role="progressbar"
+            aria-label="Current task progress"
+            aria-valuemin="0"
+            aria-valuemax="1"
+            aria-valuenow="0"
+            id="taskProgress"
+          >
+            <div class="task-progress__bar" id="taskProgressBar"></div>
+          </div>
         </section>
-        <div id="reader" class="reader"></div>
-        <p class="scanner-status" id="scannerStatus" role="status">Preparing camera…</p>
-        <section class="scan-panel"><span>Last Accepted Scan</span><strong id="lastScan">No item scanned yet.</strong></section><section class="action-panel"><strong id="guidanceTitle">Place the QR code inside the square.</strong><p id="guidanceCopy">Keep the item steady until we confirm the scan.</p></section>
+
+        <section class="camera-workspace" aria-label="Camera workspace">
+          <div id="reader" class="reader"></div>
+          <div class="camera-feedback" aria-live="polite">
+            <p class="scanner-status" id="scannerStatus" role="status">Preparing camera…</p>
+            <div class="scan-confirmation">
+              <span>Last confirmed item</span>
+              <strong id="lastScan">No item scanned yet.</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="guidance-message">
+          <strong id="guidanceTitle">Place the QR code inside the square.</strong>
+          <p id="guidanceCopy">Keep the item steady until we confirm the scan.</p>
+        </section>
+
+        <details class="support-actions">
+          <summary>Need help?</summary>
+          <p>Make sure the QR code is clean, well lit, and fully inside the highlighted square.</p>
+        </details>
       </div>
     </section>
 
-    <section class="screen" id="errorScreen"><div class="card"><p class="eyebrow">Order Link</p><h1>We couldn’t open this order.</h1><p class="lead" id="errorMessage">This order link may be invalid, expired, or temporarily unavailable.</p></div></section>
+    <section class="screen" id="errorScreen">
+      <div class="screen-surface screen-surface--centered">
+        <div class="brand-lockup" aria-label="Big W Events">
+          <img
+            class="brand-lockup__image"
+            src="assets/brand/logo-primary.png"
+            alt="Big W Events"
+          >
+        </div>
+        <p class="experience-kicker">Your Rental</p>
+        <h1>We couldn’t open this order.</h1>
+        <p class="experience-copy" id="errorMessage">This order link may be invalid, expired, or temporarily unavailable.</p>
+      </div>
+    </section>
   </main>
+
   <script src="js/api.js"></script>
   <script src="js/scanner.js"></script>
   <script src="js/app.js"></script>
