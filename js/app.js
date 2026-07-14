@@ -148,16 +148,25 @@
       customerName: currentOrder.customerName || "Customer"
     })
       .then(function (response) {
-        if (!response || response.ok !== true) {
-          throw new Error(
-            (response && response.message) ||
-              "The pickup scan could not be saved."
+        if (!response) {
+          throw new Error("The pickup scan returned no response.");
+        }
+
+        if (response.guidance) {
+          renderPickupGuidance(response.guidance);
+        }
+
+        if (response.ok !== true) {
+          setScannerStatus(
+            response.message || "This item is not ready to scan yet.",
+            "error"
           );
+          return;
         }
 
         document.getElementById("lastScan").textContent = itemId;
         setScannerStatus(
-          "Accepted: " + itemId + ". Pickup scan saved.",
+          response.message || ("Accepted: " + itemId + "."),
           "success"
         );
       })
@@ -248,37 +257,69 @@
       order.customerName || "—";
   }
 
-  function renderScannerContext(order) {
+  function renderScannerContext() {
     document.getElementById("lastScan").textContent =
       "No item scanned yet.";
-
-    const focusState = getFocusState(order.itemSummary);
-    document.getElementById("currentTask").textContent = focusState.task;
+    document.getElementById("currentTask").textContent =
+      "Loading pickup task…";
     document.getElementById("taskProgressText").textContent =
-      focusState.remaining;
+      "Checking what remains";
   }
 
-  function getFocusState(itemSummary) {
-    const summary = String(itemSummary || "").trim();
-    const firstGroup = summary.split(/[,;]+/)[0].trim();
-    const match = firstGroup.match(/^(\d+)\s+(.+)$/);
-
-    if (match) {
-      const quantity = Number(match[1]);
-      const label = match[2].trim();
-      const singularLabel =
-        quantity === 1 ? label.replace(/s$/i, "") : label;
-
-      return {
-        task: "Scan " + label,
-        remaining: quantity + " " + singularLabel
-      };
+  function refreshPickupGuidance() {
+    if (!activeToken || !currentOrder || !currentOrder.agreementNumber) {
+      setScannerStatus(
+        "Order context is missing. Reopen the order link and try again.",
+        "error"
+      );
+      return;
     }
 
-    return {
-      task: "Scan your pickup items",
-      remaining: summary || "Your items are ready."
-    };
+    Launch1Api.loadPickupGuidance({
+      token: activeToken,
+      agreementNumber: currentOrder.agreementNumber
+    })
+      .then(function (response) {
+        if (!response || response.ok !== true || !response.guidance) {
+          throw new Error(
+            (response && response.message) ||
+              "Pickup guidance could not be loaded."
+          );
+        }
+
+        renderPickupGuidance(response.guidance);
+      })
+      .catch(function (error) {
+        document.getElementById("currentTask").textContent =
+          "Scan your pickup items";
+        document.getElementById("taskProgressText").textContent =
+          "Guidance unavailable";
+        setScannerStatus(
+          error && error.message
+            ? error.message
+            : "Pickup guidance could not be loaded.",
+          "error"
+        );
+      });
+  }
+
+  function renderPickupGuidance(guidance) {
+    const task = document.getElementById("currentTask");
+    const remaining = document.getElementById("taskProgressText");
+
+    if (guidance.complete === true) {
+      task.textContent = "Pickup scanning complete";
+      remaining.textContent = "0 items remaining";
+      return;
+    }
+
+    task.textContent =
+      guidance.taskLabel ||
+      ("Scan " + (guidance.currentCategory || "pickup items"));
+
+    remaining.textContent =
+      guidance.remainingLabel ||
+      String(guidance.remaining || 0) + " remaining";
   }
 
   function setScannerStatus(message, tone) {
