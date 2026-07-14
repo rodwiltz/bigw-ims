@@ -247,10 +247,8 @@
     document.getElementById("pickupCustomer").textContent =
       order.customerName || "—";
 
-    const focusState = getAvailableFocusState(order.itemSummary);
-
-    document.getElementById("handoffTask").textContent =
-      focusState.task;
+    const focusState = getFocusState(order.itemSummary);
+    document.getElementById("handoffTask").textContent = focusState.task;
     document.getElementById("handoffRemaining").textContent =
       focusState.remaining;
   }
@@ -263,22 +261,13 @@
     document.getElementById("lastScan").textContent =
       "No item scanned yet.";
 
-    const focusState = getAvailableFocusState(order.itemSummary);
-
-    document.getElementById("currentTask").textContent =
-      focusState.task;
+    const focusState = getFocusState(order.itemSummary);
+    document.getElementById("currentTask").textContent = focusState.task;
     document.getElementById("taskProgressText").textContent =
       focusState.remaining;
-
-    const progress = document.getElementById("taskProgress");
-    const progressBar = document.getElementById("taskProgressBar");
-
-    progress.setAttribute("aria-valuemax", "1");
-    progress.setAttribute("aria-valuenow", "0");
-    progressBar.style.width = "0%";
   }
 
-  function getAvailableFocusState(itemSummary) {
+  function getFocusState(itemSummary) {
     const summary = String(itemSummary || "").trim();
     const firstGroup = summary.split(/[,;]+/)[0].trim();
     const match = firstGroup.match(/^(\d+)\s+(.+)$/);
@@ -286,19 +275,18 @@
     if (match) {
       const quantity = Number(match[1]);
       const label = match[2].trim();
+      const singularLabel =
+        quantity === 1 ? label.replace(/s$/i, "") : label;
 
       return {
         task: "Scan " + label,
-        remaining:
-          "Remaining: " + quantity + " " + label
+        remaining: quantity + " " + singularLabel
       };
     }
 
     return {
       task: "Scan your pickup items",
-      remaining: summary
-        ? "Remaining: " + summary
-        : "Your items are ready."
+      remaining: summary || "Your items are ready."
     };
   }
 
