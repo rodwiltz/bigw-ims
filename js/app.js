@@ -19,6 +19,8 @@
   let currentOrder = null;
   let scannerStarted = false;
   let scanInFlight = false;
+  let lastSubmittedItemId = "";
+  let lastSubmittedAt = 0;
 
   document.addEventListener("DOMContentLoaded", function () {
     activeToken = getTokenFromUrl();
@@ -132,8 +134,21 @@
 
   function handleScanSuccess(decodedText) {
     const itemId = normalizeScannedItemId(decodedText);
+    const now = Date.now();
 
     if (!itemId || scanInFlight) {
+      return;
+    }
+
+    /*
+     * html5-qrcode may report the same visible code repeatedly.
+     * Suppress only the same item for a short period while allowing a
+     * different item to be submitted immediately after confirmation.
+     */
+    if (
+      itemId === lastSubmittedItemId &&
+      now - lastSubmittedAt < 1500
+    ) {
       return;
     }
 
@@ -146,7 +161,15 @@
     }
 
     scanInFlight = true;
-    setScannerStatus("Saving pickup scan for " + itemId + "…", "ready");
+    lastSubmittedItemId = itemId;
+    lastSubmittedAt = now;
+
+    document.getElementById("lastScan").textContent =
+      itemId + " detected";
+    setScannerStatus(
+      "QR detected. Confirming " + itemId + "…",
+      "ready"
+    );
 
     Launch1Api.recordPickupScan({
       token: activeToken,
@@ -164,6 +187,8 @@
         }
 
         if (response.ok !== true) {
+          document.getElementById("lastScan").textContent =
+            "Not accepted: " + itemId;
           setScannerStatus(
             response.message || "This item is not ready to scan yet.",
             "error"
@@ -171,13 +196,16 @@
           return;
         }
 
-        document.getElementById("lastScan").textContent = itemId;
+        document.getElementById("lastScan").textContent =
+          itemId + " accepted";
         setScannerStatus(
           response.message || ("Accepted: " + itemId + "."),
           "success"
         );
       })
       .catch(function (error) {
+        document.getElementById("lastScan").textContent =
+          "Confirmation failed: " + itemId;
         setScannerStatus(
           "Pickup scan was not saved: " +
             (error && error.message ? error.message : String(error)),
@@ -185,9 +213,12 @@
         );
       })
       .finally(function () {
-        window.setTimeout(function () {
-          scanInFlight = false;
-        }, 1200);
+        /*
+         * Release immediately after authoritative backend resolution.
+         * Same-code repeat suppression prevents accidental duplicate requests,
+         * so no fixed post-response cooldown is needed.
+         */
+        scanInFlight = false;
       });
   }
 
