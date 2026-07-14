@@ -19,8 +19,6 @@
   let currentOrder = null;
   let scannerStarted = false;
   let scanInFlight = false;
-  let pickupTasks = [];
-  let genericAcceptedCount = 0;
 
   document.addEventListener("DOMContentLoaded", function () {
     activeToken = getTokenFromUrl();
@@ -39,7 +37,6 @@
         }
 
         currentOrder = response.orderSummary || {};
-        pickupTasks = buildPickupTasks(currentOrder.itemSummary);
         renderSummary(currentOrder);
         showScreen(summaryScreen);
       })
@@ -69,6 +66,11 @@
       renderScannerContext(currentOrder || {});
       showScreen(scannerScreen);
 
+      /*
+       * Keep the entire scanner startup inside the direct customer-tap path.
+       * Reading layout synchronously confirms #reader is visible before the
+       * scanner library measures and builds its qrbox overlay.
+       */
       const reader = document.getElementById("reader");
       reader.getBoundingClientRect();
       window.scrollTo(0, 0);
@@ -90,10 +92,6 @@
         "Scanner library did not load. Please refresh and try again.",
         "error"
       );
-      setGuidance(
-        "Camera unavailable.",
-        "Refresh the page and tap Open Camera again."
-      );
       return;
     }
 
@@ -101,10 +99,6 @@
       setScannerStatus(
         "Scanner support is not available. Please refresh and try again.",
         "error"
-      );
-      setGuidance(
-        "Camera unavailable.",
-        "Refresh the page and tap Open Camera again."
       );
       return;
     }
@@ -118,10 +112,6 @@
           "Camera ready. Place one QR code inside the highlighted square.",
           "ready"
         );
-        setGuidance(
-          "Place the QR code inside the square.",
-          "Keep the item steady until we confirm the scan."
-        );
       })
       .catch(function (error) {
         scannerStarted = false;
@@ -129,10 +119,6 @@
           "Scanner could not start: " +
             (error && error.message ? error.message : String(error)),
           "error"
-        );
-        setGuidance(
-          "Camera access is needed.",
-          "Allow camera access, then reopen this order link and try again."
         );
       });
   }
@@ -153,7 +139,7 @@
     }
 
     scanInFlight = true;
-    setScannerStatus("Checking " + itemId + "…", "ready");
+    setScannerStatus("Saving pickup scan for " + itemId + "…", "ready");
 
     Launch1Api.recordPickupScan({
       token: activeToken,
@@ -170,16 +156,9 @@
         }
 
         document.getElementById("lastScan").textContent = itemId;
-        applyAcceptedScanToTask(response.category);
-        renderCurrentTask();
-
         setScannerStatus(
-          "Confirmed: " + itemId + ".",
+          "Accepted: " + itemId + ". Pickup scan saved.",
           "success"
-        );
-        setGuidance(
-          "Item confirmed.",
-          "Keep going with the current task."
         );
       })
       .catch(function (error) {
@@ -188,142 +167,12 @@
             (error && error.message ? error.message : String(error)),
           "error"
         );
-        setGuidance(
-          "That scan was not saved.",
-          "Keep the QR code in the frame and try again."
-        );
       })
       .finally(function () {
         window.setTimeout(function () {
           scanInFlight = false;
         }, 1200);
       });
-  }
-
-  function buildPickupTasks(itemSummary) {
-    const source = String(itemSummary || "").trim();
-
-    if (!source) {
-      return [];
-    }
-
-    return source
-      .split(/[,;]+/)
-      .map(function (part) {
-        const clean = part.trim();
-        const match = clean.match(/^(\d+)\s+(.+)$/);
-
-        if (!match) {
-          return null;
-        }
-
-        return {
-          total: Number(match[1]),
-          label: match[2].trim(),
-          scanned: 0
-        };
-      })
-      .filter(Boolean);
-  }
-
-  function applyAcceptedScanToTask(category) {
-    const normalizedCategory = normalizeCategory(category);
-    let matchingTask = null;
-
-    pickupTasks.some(function (task) {
-      if (
-        task.scanned < task.total &&
-        categoriesMatch(normalizedCategory, normalizeCategory(task.label))
-      ) {
-        matchingTask = task;
-        return true;
-      }
-
-      return false;
-    });
-
-    if (!matchingTask) {
-      matchingTask = pickupTasks.find(function (task) {
-        return task.scanned < task.total;
-      });
-    }
-
-    if (matchingTask) {
-      matchingTask.scanned = Math.min(
-        matchingTask.total,
-        matchingTask.scanned + 1
-      );
-    } else {
-      genericAcceptedCount += 1;
-    }
-  }
-
-  function categoriesMatch(first, second) {
-    return first === second ||
-      first.indexOf(second) !== -1 ||
-      second.indexOf(first) !== -1;
-  }
-
-  function normalizeCategory(value) {
-    return String(value || "")
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "")
-      .replace(/s$/, "");
-  }
-
-  function renderCurrentTask() {
-    const task = pickupTasks.find(function (candidate) {
-      return candidate.scanned < candidate.total;
-    });
-
-    const title = document.getElementById("currentTask");
-    const progressText = document.getElementById("taskProgressText");
-    const progress = document.getElementById("taskProgress");
-    const bar = document.getElementById("taskProgressBar");
-
-    if (!task) {
-      title.textContent = pickupTasks.length
-        ? "Current pickup task complete"
-        : "Scan your pickup items";
-
-      progressText.textContent = pickupTasks.length
-        ? "All listed tasks confirmed"
-        : genericAcceptedCount + " item" +
-          (genericAcceptedCount === 1 ? "" : "s") + " confirmed";
-
-      progress.setAttribute("aria-valuemax", "1");
-      progress.setAttribute("aria-valuenow", pickupTasks.length ? "1" : "0");
-      bar.style.width = pickupTasks.length ? "100%" : "0%";
-      return;
-    }
-
-    const remaining = Math.max(0, task.total - task.scanned);
-    const percentage = task.total
-      ? Math.round((task.scanned / task.total) * 100)
-      : 0;
-
-    title.textContent = "Scan " + task.label;
-    progressText.textContent =
-      task.scanned + " of " + task.total + " scanned • " +
-      remaining + " remaining";
-
-    progress.setAttribute("aria-valuemax", String(task.total));
-    progress.setAttribute("aria-valuenow", String(task.scanned));
-    bar.style.width = percentage + "%";
-  }
-
-  function renderHandoffTask() {
-    const task = pickupTasks.find(function (candidate) {
-      return candidate.scanned < candidate.total;
-    });
-
-    document.getElementById("handoffTask").textContent = task
-      ? "Scan " + task.label
-      : "Scan your pickup items";
-
-    document.getElementById("handoffRemaining").textContent = task
-      ? task.total + " ready to scan"
-      : "Your items are ready.";
   }
 
   function normalizeScannedItemId(value) {
@@ -397,8 +246,8 @@
       order.agreementNumber || "—";
     document.getElementById("pickupCustomer").textContent =
       order.customerName || "—";
-
-    renderHandoffTask();
+    document.getElementById("pickupItems").textContent =
+      order.itemSummary || "—";
   }
 
   function renderScannerContext(order) {
@@ -406,10 +255,10 @@
       order.agreementNumber || "—";
     document.getElementById("scannerCustomer").textContent =
       order.customerName || "—";
+    document.getElementById("scannerItems").textContent =
+      order.itemSummary || "—";
     document.getElementById("lastScan").textContent =
       "No item scanned yet.";
-
-    renderCurrentTask();
   }
 
   function setScannerStatus(message, tone) {
@@ -419,11 +268,6 @@
     status.classList.toggle("scanner-status--ready", tone === "ready");
     status.classList.toggle("scanner-status--success", tone === "success");
     status.classList.toggle("scanner-status--error", tone === "error");
-  }
-
-  function setGuidance(title, copy) {
-    document.getElementById("guidanceTitle").textContent = title;
-    document.getElementById("guidanceCopy").textContent = copy;
   }
 
   function getTokenFromUrl() {
