@@ -56,6 +56,12 @@ const Launch1Api = (function () {
     },
     recordPickupScan: function (payload) {
       return call("recordPickupScan", payload);
+    },
+    loadReturnGuidance: function (payload) {
+      return call("loadReturnGuidance", payload);
+    },
+    recordReturnScan: function (payload) {
+      return call("recordReturnScan", payload);
     }
   };
 })();
