@@ -48,6 +48,9 @@ const Launch1Api = (function () {
   }
 
   return {
+    resolveJourneyByToken: function (token) {
+      return call("resolveJourneyByToken", { token: token });
+    },
     loadOrderSummaryByToken: function (token) {
       return call("loadOrderSummaryByToken", { token: token });
     },
