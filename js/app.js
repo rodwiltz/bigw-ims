@@ -5,6 +5,7 @@
   const summaryScreen = document.getElementById("summaryScreen");
   const pickupHandoffScreen = document.getElementById("pickupHandoffScreen");
   const scannerScreen = document.getElementById("scannerScreen");
+  const completionScreen = document.getElementById("completionScreen");
   const errorScreen = document.getElementById("errorScreen");
 
   const allScreens = [
@@ -12,6 +13,7 @@
     summaryScreen,
     pickupHandoffScreen,
     scannerScreen,
+    completionScreen,
     errorScreen
   ];
 
@@ -31,23 +33,23 @@
       return;
     }
 
-    Launch1Api.loadOrderSummaryByToken(activeToken)
+    Launch1Api.resolveJourneyByToken(activeToken)
       .then(function (response) {
         if (!response || response.ok !== true) {
           throw new Error(
-            (response && response.message) || "Order could not be loaded."
+            (response && response.message) ||
+              "Your rental journey could not be loaded."
           );
         }
 
         currentOrder = response.orderSummary || {};
-        renderSummary(currentOrder);
-        showScreen(summaryScreen);
+        routeResolvedJourney(response.journey || {});
       })
       .catch(function (error) {
         showError(
           error && error.message
             ? error.message
-            : "We could not load your order right now."
+            : "We could not load your rental journey right now."
         );
       });
   });
@@ -275,6 +277,44 @@
     }
 
     return raw;
+  }
+
+  function routeResolvedJourney(journey) {
+    const state = String(journey.state || "").trim();
+
+    if (state === "pickup_required") {
+      activeFlow = "pickup";
+      renderHandoff(currentOrder || {});
+      showScreen(pickupHandoffScreen);
+      return;
+    }
+
+    if (state === "return_required") {
+      activeFlow = "return";
+      renderHandoff(currentOrder || {});
+      showScreen(pickupHandoffScreen);
+      return;
+    }
+
+    if (state === "journey_complete") {
+      renderCompletion(currentOrder || {});
+      showScreen(completionScreen);
+      return;
+    }
+
+    throw new Error(
+      journey.message ||
+        "The application could not determine the next step for this rental."
+    );
+  }
+
+  function renderCompletion(order) {
+    document.getElementById("completionAgreement").textContent =
+      order.agreementNumber || "—";
+    document.getElementById("completionCustomer").textContent =
+      order.customerName || "—";
+    document.getElementById("completionItems").textContent =
+      order.itemSummary || "—";
   }
 
   function renderSummary(order) {
